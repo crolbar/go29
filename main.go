@@ -4,13 +4,12 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"go29/udev"
 	"os"
 	"strconv"
 	"strings"
 	"syscall"
 	"time"
-
-	"github.com/jochenvg/go-udev"
 )
 
 type InputEvent struct {
@@ -34,11 +33,11 @@ const vendorID = 0x046d
 const productID = 0xc24f
 
 func init_model() model {
-	u := udev.Udev{}
+	u := udev.NewUdev()
 
 	enumerator := u.NewEnumerate()
 
-	devices, err := enumerator.Devices()
+	devices, err := enumerator.GetDevices()
 	if err != nil {
 		fmt.Println("error scanning devices:", err)
 		panic("")
@@ -79,7 +78,7 @@ func main() {
 
 	go m.print_events()
 
-	m.set_autocenter(20000)
+	m.set_autocenter(5000)
 	m.set_range(500)
 
 	select {}
