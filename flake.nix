@@ -17,7 +17,7 @@
       version = "0.1";
       src = ./.;
       buildInputs = with pkgs; [systemd.dev];
-      vendorHash = null;
+      vendorHash = "sha256-LD5FKaW1e1HFEWc6i0iLw0LG8sFdy5WNsisBoMgN5yA=";
     };
   };
 }

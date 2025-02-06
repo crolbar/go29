@@ -1,163 +1,97 @@
 package main
 
 import (
-	"bytes"
-	"encoding/binary"
 	"fmt"
-	"go29/udev"
-	"os"
-	"strconv"
-	"strings"
-	"syscall"
-	"time"
+
+	"go29/device"
+	"go29/ui"
+	"go29/ui/progbar"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
-type InputEvent struct {
-	Sec   int64
-	Usec  int64
-	Type  uint16
-	Code  uint16
-	Value int32
-}
-
 type model struct {
-	dev      *udev.Device
-	dev_path string
-	dev_name string
+	dev device.Device
+	ui  ui.Ui
 }
 
-const FF_AUTOCENTER = 0x61
-const EV_FF = 0x15
-
-const vendorID = 0x046d
-const productID = 0xc24f
-
-func init_model() model {
-	u := udev.NewUdev()
-
-	enumerator := u.NewEnumerate()
-
-	devices, err := enumerator.GetDevices()
-	if err != nil {
-		fmt.Println("error scanning devices:", err)
-		panic("")
+func newModel() model {
+	return model{
+		ui: ui.NewUi(
+			progbar.NewProgBar("left", 3, 40),
+			progbar.NewProgBar("right", 3, 40),
+		),
+		dev: device.NewDevice(),
 	}
-
-	var dev *udev.Device
-
-	for _, device := range devices {
-		props := device.Properties()
-		product_id, _ := strconv.ParseInt(props["ID_MODEL_ID"], 16, 64)
-		vendor_id, _ := strconv.ParseInt(props["ID_VENDOR_ID"], 16, 64)
-
-		if !strings.Contains(props["DEVNAME"], "event") {
-			continue
-		}
-
-		if product_id == productID && vendor_id == vendorID {
-			dev = device
-			break
-		}
-	}
-
-	// TODO
-	if dev == nil {
-		return model{}
-	}
-
-	path := fmt.Sprintf("/sys%s/device/device", dev.Properties()["DEVPATH"])
-
-	devname := dev.Properties()["DEVNAME"]
-	m := model{dev: dev, dev_path: path, dev_name: devname}
-
-	return m
 }
 
 func main() {
-	m := init_model()
+	m := newModel()
 
-	go m.print_events()
+	go m.dev.PrintEvents()
 
-	m.set_autocenter(5000)
-	m.set_range(500)
+	// m.dev.SetAutocenter(5000)
+	// m.dev.SetRange(500)
 
-	select {}
-}
+	// m.ui.Progbar.SetMaxValue(65535)
+	m.ui.WheelLeft.SetMaxValue(32767)
+	m.ui.WheelRight.SetMaxValue(32767)
 
-func (m *model) set_range(value int) {
-	file, err := os.OpenFile(fmt.Sprintf("%s/range", m.dev_path), os.O_WRONLY, 0666)
-	if err != nil {
-		fmt.Println("Error opening file:", err)
+	// m.ui.WheelLeft.SetMaxValue(200)
+	// m.ui.WheelRight.SetMaxValue(200)
+
+	m.ui.WheelLeft.Reverse(true)
+	m.ui.WheelLeft.DisableRightBorder(true)
+	m.ui.WheelRight.DisableLeftBorder(true)
+
+	p := tea.NewProgram(m)
+
+	m.dev.SetProgram(p)
+	if _, err := p.Run(); err != nil {
+		fmt.Println("Exited with Error: ", err)
 		return
-	}
-	defer file.Close()
-
-	_, err = file.WriteString(fmt.Sprintf("%d", value))
-	if err != nil {
-		fmt.Println("Error writing to file:", err)
-		return
-	}
-}
-
-func (m *model) print_events() {
-	for true {
-		var data []byte = make([]byte, 300)
-
-		fd, err := syscall.Open(m.dev_name, syscall.O_RDONLY, 0644)
-		if err != nil {
-			fmt.Println("Error opening dev event", err)
-		}
-
-		_, err = syscall.Read(fd, data)
-		if err != nil {
-			fmt.Println("Error reading input_event:", err)
-		}
-
-		var event InputEvent
-		reader := bytes.NewReader(data)
-		err = binary.Read(reader, binary.LittleEndian, &event)
-		if err != nil {
-			fmt.Println("binary.Read Error:", err)
-			return
-		}
-
-		fmt.Println(event)
-
-		if event.Code == 0 {
-			fmt.Println(event.Value)
-		}
-
-		time.Sleep(1 * time.Second)
 	}
 }
 
-func (m *model) set_autocenter(value int32) {
-	now := time.Now()
-	ev := InputEvent{
-		Sec:   now.Unix(),
-		Usec:  int64(now.Nanosecond() / 1000),
-		Type:  EV_FF,
-		Code:  FF_AUTOCENTER,
-		Value: value,
+func (m model) Init() tea.Cmd {
+	return nil
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "q":
+			return m, tea.Quit
+		case "u":
+			m.ui.WheelLeft.SetValue(20)
+		case "i":
+			m.ui.WheelLeft.SetValue(50)
+		case "d":
+			m.ui.WheelRight.SetValue(70)
+		case "h":
+			m.ui.WheelLeft.SetValue(200)
+		case "+":
+			m.ui.WheelLeft.SetValue(m.ui.WheelLeft.GetValue() + 1)
+		case "-":
+			m.ui.WheelLeft.SetValue(m.ui.WheelLeft.GetValue() - 1)
+		}
+
+	case device.Send:
+		if msg.Value < 32767 {
+			m.ui.WheelLeft.SetValue(32767 - msg.Value)
+			m.ui.WheelRight.SetValue(0)
+		} else {
+			m.ui.WheelLeft.SetValue(0)
+			m.ui.WheelRight.SetValue(msg.Value - 32767)
+		}
 	}
 
-	var buf bytes.Buffer
-	if err := binary.Write(&buf, binary.LittleEndian, ev); err != nil {
-		fmt.Println("binary.Write failed:", err)
-		return
-	}
-	report := buf.Bytes()
-	fmt.Println(report)
+	return m, cmd
+}
 
-	fd, err := syscall.Open(m.dev_name, syscall.O_WRONLY, 0644)
-	if err != nil {
-		fmt.Println("Error opening file:", err)
-		return
-	}
-
-	_, err = syscall.Write(fd, report)
-	if err != nil {
-		fmt.Println("Error writing file:", err)
-		return
-	}
+func (m model) View() string {
+	return m.ui.Render()
 }
