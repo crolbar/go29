@@ -131,7 +131,8 @@ func (d *Device) GetRange() int {
 	return r
 }
 
-func (d *Device) SetAutocenter(value int32) {
+func (d *Device) SetAutocenter(perc int) {
+	value := int32((float32(perc) / 100.0) * 65535)
 	now := time.Now()
 	ev := InputEvent{
 		Sec:   now.Unix(),
@@ -147,7 +148,6 @@ func (d *Device) SetAutocenter(value int32) {
 		return
 	}
 	report := buf.Bytes()
-	fmt.Println(report)
 
 	fd, err := syscall.Open(d.dev_name, syscall.O_WRONLY, 0644)
 	if err != nil {

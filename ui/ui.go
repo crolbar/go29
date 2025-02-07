@@ -6,17 +6,19 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-
 type SelectedBar int
+
 const (
 	WheelRange SelectedBar = iota
+	AutoCenter
 )
 
 type Ui struct {
-	WheelLeft  progbar.ProgBar
-	WheelRight progbar.ProgBar
-	Throttle   progbar.ProgBar
-	WheelRange progbar.ProgBar
+	WheelLeft   progbar.ProgBar
+	WheelRight  progbar.ProgBar
+	Throttle    progbar.ProgBar
+	WheelRange  progbar.ProgBar
+	AutoCenter  progbar.ProgBar
 	selectedBar SelectedBar
 }
 
@@ -25,12 +27,14 @@ func NewUi(
 	wheelRight progbar.ProgBar,
 	throttle progbar.ProgBar,
 	wheelRange progbar.ProgBar,
+	autoCenter progbar.ProgBar,
 ) Ui {
 	return Ui{
-		WheelLeft:  wheelLeft,
-		WheelRight: wheelRight,
-		Throttle:   throttle,
-		WheelRange: wheelRange,
+		WheelLeft:   wheelLeft,
+		WheelRight:  wheelRight,
+		Throttle:    throttle,
+		WheelRange:  wheelRange,
+		AutoCenter: autoCenter,
 		selectedBar: WheelRange,
 	}
 }
@@ -44,6 +48,7 @@ func (u Ui) Render() string {
 		lipgloss.JoinHorizontal(lipgloss.Center,
 			u.Throttle.View(),
 			u.WheelRange.View(),
+			u.AutoCenter.View(),
 		),
 	)
 }

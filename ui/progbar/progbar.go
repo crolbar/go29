@@ -21,6 +21,7 @@ type ProgBar struct {
 	vertical      bool
 	noLeftBorder  bool
 	noRightBorder bool
+	selected      bool
 }
 
 var s lipgloss.Style = lipgloss.NewStyle()
@@ -40,11 +41,20 @@ func NewProgBar(
 		vertical:      false,
 		noLeftBorder:  false,
 		noRightBorder: false,
+		selected:      false,
 	}
 }
 
 func (p *ProgBar) Reverse(b bool) {
 	p.reverse = b
+}
+
+func (p *ProgBar) Select() {
+	p.selected = true
+}
+
+func (p *ProgBar) DeSelect() {
+	p.selected = false
 }
 
 func (p *ProgBar) DisableRightBorder(b bool) {
@@ -90,7 +100,7 @@ func (p ProgBar) View() string {
 	v := float32(p.value)
 	min_v := float32(p.min_value)
 	max_v := float32(p.max_value)
-	perc := (v-min_v)/(max_v-min_v)
+	perc := (v - min_v) / (max_v - min_v)
 	progress := int(perc * float32(end))
 
 	for i := 0; i < end; i++ {
@@ -121,6 +131,8 @@ func (p ProgBar) View() string {
 		barStr = fmt.Sprintf("%s\n%s", barStr, tmp)
 	}
 
+	borderColor := lipgloss.Color(iff(p.selected, "57", "15"))
+
 	title := s.Border(lipgloss.Border{
 		Left:        "│",
 		Right:       "│",
@@ -131,6 +143,7 @@ func (p ProgBar) View() string {
 		BorderTop(false).
 		BorderRight(!p.noRightBorder).
 		BorderLeft(!p.noLeftBorder).
+		BorderForeground(borderColor).
 		Width(p.width).
 		Align(lipgloss.Center).
 		Render(fmt.Sprintf("%s(%d)", p.title, p.value))
@@ -139,6 +152,7 @@ func (p ProgBar) View() string {
 		BorderTop(false).
 		BorderRight(!p.noRightBorder).
 		BorderLeft(!p.noLeftBorder).
+		BorderForeground(borderColor).
 		Foreground(lipgloss.Color("57")).
 		Width(p.width).
 		Height(p.height).
@@ -150,7 +164,7 @@ func (p ProgBar) View() string {
 	)
 }
 
-func iff[T int | bool](b bool, f, s T) T {
+func iff[T int | bool | string](b bool, f, s T) T {
 	if b {
 		return f
 	}

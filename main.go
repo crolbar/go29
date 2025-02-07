@@ -22,6 +22,7 @@ func newModel() model {
 			progbar.NewProgBar("right", 3, 40),
 			progbar.NewProgBar("throttle", 15, 13),
 			progbar.NewProgBar("range", 3, 40),
+			progbar.NewProgBar("autocenter", 3, 40),
 		),
 		dev: device.NewDevice(),
 	}
@@ -32,15 +33,8 @@ func main() {
 
 	go m.dev.PrintEvents()
 
-	// m.dev.SetAutocenter(5000)
-	// m.dev.SetRange(90)
-
-	// m.ui.Progbar.SetMaxValue(65535)
 	m.ui.WheelLeft.SetMaxValue(32767)
 	m.ui.WheelRight.SetMaxValue(32767)
-
-	// m.ui.WheelLeft.SetMaxValue(200)
-	// m.ui.WheelRight.SetMaxValue(200)
 
 	m.ui.WheelLeft.Reverse(true)
 	m.ui.WheelLeft.DisableRightBorder(true)
@@ -53,6 +47,9 @@ func main() {
 	m.ui.WheelRange.SetMaxValue(900)
 	m.ui.WheelRange.SetMinValue(30)
 	m.ui.WheelRange.SetValue(m.dev.GetRange())
+	m.ui.WheelRange.Select()
+
+	m.ui.AutoCenter.SetMaxValue(100)
 
 	p := tea.NewProgram(m)
 
@@ -79,6 +76,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.ui.HandleSelectedBarLeft(&m.dev)
 		case "l":
 			m.ui.HandleSelectedBarRight(&m.dev)
+
+		case "tab":
+			m.ui.SelectNextBar()
+		case "shift+tab":
+			m.ui.SelectPrevBar()
 		}
 
 	case device.Send:
