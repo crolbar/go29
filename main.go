@@ -50,7 +50,7 @@ func newModel() model {
 
 func main() {
 	m := newModel()
-	p := tea.NewProgram(m)
+	p := tea.NewProgram(m, tea.WithAltScreen())
 
 	m.dev.SetProgram(p)
 	go m.dev.PrintEvents()
@@ -83,6 +83,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "shift+tab":
 			m.ui.SelectPrevBar()
 		}
+	case tea.WindowSizeMsg:
+		m.ui.UpdateDimensions(msg.Width, msg.Height)
 
 	case device.Send:
 		if msg.Value < 32767 {

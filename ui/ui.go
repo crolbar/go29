@@ -20,6 +20,9 @@ type Ui struct {
 	RangeBar      progbar.ProgBar
 	AutoCenterBar progbar.ProgBar
 	selectedBar   SelectedBar
+
+	height int
+	width  int
 }
 
 func NewUi(
@@ -36,19 +39,57 @@ func NewUi(
 		RangeBar:      wheelRangeBar,
 		AutoCenterBar: autoCenterBar,
 		selectedBar:   Range,
+
+		height: 0,
+		width:  0,
 	}
 }
 
+func (u *Ui) UpdateDimensions(width, height int) {
+	u.width = width
+	u.height = height
+}
+
+var s lipgloss.Style = lipgloss.NewStyle()
+
 func (u Ui) Render() string {
-	return lipgloss.JoinVertical(lipgloss.Center,
-		lipgloss.JoinHorizontal(lipgloss.Center,
-			u.WheelLeftBar.View(),
-			u.WheelRightBar.View(),
-		),
-		lipgloss.JoinHorizontal(lipgloss.Center,
-			u.ThrottleBar.View(),
-			u.RangeBar.View(),
-			u.AutoCenterBar.View(),
+	screenStyle := s.PaddingTop(2).
+		PaddingBottom(2).
+		PaddingRight(5).
+		PaddingLeft(5).
+		Margin(1).
+		Height(u.height - 5).
+		Width(u.width - 5)
+
+	wheelBar := lipgloss.JoinHorizontal(lipgloss.Left,
+		u.WheelLeftBar.View(),
+		u.WheelRightBar.View(),
+	)
+
+	sliderBars := s.MarginLeft(10).
+		Render(
+			lipgloss.JoinVertical(lipgloss.Left,
+				u.RangeBar.View(),
+				u.AutoCenterBar.View(),
+			),
+		)
+
+	throttle := u.ThrottleBar.View()
+	pedals := s.Height(u.height - lipgloss.Height(wheelBar) - lipgloss.Height(throttle)/2).
+		AlignVertical(lipgloss.Bottom).
+		Render(
+			lipgloss.JoinHorizontal(lipgloss.Left,
+				throttle,
+			),
+		)
+
+	return screenStyle.Render(
+		lipgloss.JoinHorizontal(lipgloss.Top,
+			lipgloss.JoinVertical(lipgloss.Left,
+				wheelBar,
+				pedals,
+			),
+			sliderBars,
 		),
 	)
 }
