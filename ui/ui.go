@@ -9,46 +9,46 @@ import (
 type SelectedBar int
 
 const (
-	WheelRange SelectedBar = iota
+	Range SelectedBar = iota
 	AutoCenter
 )
 
 type Ui struct {
-	WheelLeft   progbar.ProgBar
-	WheelRight  progbar.ProgBar
-	Throttle    progbar.ProgBar
-	WheelRange  progbar.ProgBar
-	AutoCenter  progbar.ProgBar
-	selectedBar SelectedBar
+	WheelLeftBar  progbar.ProgBar
+	WheelRightBar progbar.ProgBar
+	ThrottleBar   progbar.ProgBar
+	RangeBar      progbar.ProgBar
+	AutoCenterBar progbar.ProgBar
+	selectedBar   SelectedBar
 }
 
 func NewUi(
-	wheelLeft progbar.ProgBar,
-	wheelRight progbar.ProgBar,
-	throttle progbar.ProgBar,
-	wheelRange progbar.ProgBar,
-	autoCenter progbar.ProgBar,
+	wheelLeftBar progbar.ProgBar,
+	wheelRightBar progbar.ProgBar,
+	throttleBar progbar.ProgBar,
+	wheelRangeBar progbar.ProgBar,
+	autoCenterBar progbar.ProgBar,
 ) Ui {
 	return Ui{
-		WheelLeft:   wheelLeft,
-		WheelRight:  wheelRight,
-		Throttle:    throttle,
-		WheelRange:  wheelRange,
-		AutoCenter: autoCenter,
-		selectedBar: WheelRange,
+		WheelLeftBar:  wheelLeftBar,
+		WheelRightBar: wheelRightBar,
+		ThrottleBar:   throttleBar,
+		RangeBar:      wheelRangeBar,
+		AutoCenterBar: autoCenterBar,
+		selectedBar:   Range,
 	}
 }
 
 func (u Ui) Render() string {
 	return lipgloss.JoinVertical(lipgloss.Center,
 		lipgloss.JoinHorizontal(lipgloss.Center,
-			u.WheelLeft.View(),
-			u.WheelRight.View(),
+			u.WheelLeftBar.View(),
+			u.WheelRightBar.View(),
 		),
 		lipgloss.JoinHorizontal(lipgloss.Center,
-			u.Throttle.View(),
-			u.WheelRange.View(),
-			u.AutoCenter.View(),
+			u.ThrottleBar.View(),
+			u.RangeBar.View(),
+			u.AutoCenterBar.View(),
 		),
 	)
 }

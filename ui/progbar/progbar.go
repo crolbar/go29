@@ -26,12 +26,66 @@ type ProgBar struct {
 
 var s lipgloss.Style = lipgloss.NewStyle()
 
+func WithDisabledRightBorder() Opts {
+	return func(p *ProgBar) {
+		p.noRightBorder = true
+	}
+}
+
+func WithDisabledLeftBorder() Opts {
+	return func(p *ProgBar) {
+		p.noLeftBorder = true
+	}
+}
+
+func WithMaxValue(max int) Opts {
+	return func(p *ProgBar) {
+		p.max_value = max
+	}
+}
+
+func WithMinValue(min int) Opts {
+	return func(p *ProgBar) {
+		p.min_value = min
+		if p.value < min {
+			p.value = min
+		}
+	}
+}
+
+func WithVertical() Opts {
+	return func(p *ProgBar) {
+		p.vertical = true
+	}
+}
+
+func WithReverse() Opts {
+	return func(p *ProgBar) {
+		p.reverse = true
+	}
+}
+
+func WithSelected() Opts {
+	return func(p *ProgBar) {
+		p.selected = true
+	}
+}
+
+func WithValue(value int) Opts {
+	return func(p *ProgBar) {
+		p.value = value
+	}
+}
+
+type Opts func(*ProgBar)
+
 func NewProgBar(
 	title string,
 	height int,
 	width int,
+	opts ...Opts,
 ) ProgBar {
-	return ProgBar{
+	p := ProgBar{
 		title:         title,
 		value:         0,
 		min_value:     0,
@@ -43,10 +97,12 @@ func NewProgBar(
 		noRightBorder: false,
 		selected:      false,
 	}
-}
 
-func (p *ProgBar) Reverse(b bool) {
-	p.reverse = b
+	for _, opt := range opts {
+		opt(&p)
+	}
+
+	return p
 }
 
 func (p *ProgBar) Select() {
@@ -55,29 +111,6 @@ func (p *ProgBar) Select() {
 
 func (p *ProgBar) DeSelect() {
 	p.selected = false
-}
-
-func (p *ProgBar) DisableRightBorder(b bool) {
-	p.noRightBorder = b
-}
-
-func (p *ProgBar) DisableLeftBorder(b bool) {
-	p.noLeftBorder = b
-}
-
-func (p *ProgBar) SetMaxValue(max int) {
-	p.max_value = max
-}
-
-func (p *ProgBar) SetMinValue(min int) {
-	p.min_value = min
-	if p.value < min {
-		p.value = min
-	}
-}
-
-func (p *ProgBar) SetVertical(vertical bool) {
-	p.vertical = vertical
 }
 
 func (p *ProgBar) SetTitle(title string) {

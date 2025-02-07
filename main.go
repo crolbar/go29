@@ -5,7 +5,7 @@ import (
 
 	"go29/device"
 	"go29/ui"
-	"go29/ui/progbar"
+	pb "go29/ui/progbar"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -16,44 +16,45 @@ type model struct {
 }
 
 func newModel() model {
+	d := device.NewDevice()
+
 	return model{
 		ui: ui.NewUi(
-			progbar.NewProgBar("left", 3, 40),
-			progbar.NewProgBar("right", 3, 40),
-			progbar.NewProgBar("throttle", 15, 13),
-			progbar.NewProgBar("range", 3, 40),
-			progbar.NewProgBar("autocenter", 3, 40),
+			pb.NewProgBar("left", 3, 40,
+				pb.WithMaxValue(32767),
+				pb.WithDisabledRightBorder(),
+				pb.WithReverse(),
+			),
+			pb.NewProgBar("right", 3, 40,
+				pb.WithMaxValue(32767),
+				pb.WithDisabledLeftBorder(),
+			),
+			pb.NewProgBar("throttle", 15, 13,
+				pb.WithVertical(),
+				pb.WithReverse(),
+				pb.WithMaxValue(255),
+			),
+			pb.NewProgBar("range", 3, 40,
+				pb.WithMaxValue(900),
+				pb.WithMinValue(30),
+				pb.WithValue(d.GetRange()),
+				pb.WithSelected(),
+			),
+			pb.NewProgBar("autocenter", 3, 40,
+				pb.WithMaxValue(100),
+			),
 		),
-		dev: device.NewDevice(),
+		dev: d,
 	}
 }
 
 func main() {
 	m := newModel()
-
-	go m.dev.PrintEvents()
-
-	m.ui.WheelLeft.SetMaxValue(32767)
-	m.ui.WheelRight.SetMaxValue(32767)
-
-	m.ui.WheelLeft.Reverse(true)
-	m.ui.WheelLeft.DisableRightBorder(true)
-	m.ui.WheelRight.DisableLeftBorder(true)
-
-	m.ui.Throttle.SetVertical(true)
-	m.ui.Throttle.SetMaxValue(255)
-	m.ui.Throttle.Reverse(true)
-
-	m.ui.WheelRange.SetMaxValue(900)
-	m.ui.WheelRange.SetMinValue(30)
-	m.ui.WheelRange.SetValue(m.dev.GetRange())
-	m.ui.WheelRange.Select()
-
-	m.ui.AutoCenter.SetMaxValue(100)
-
 	p := tea.NewProgram(m)
 
 	m.dev.SetProgram(p)
+	go m.dev.PrintEvents()
+
 	if _, err := p.Run(); err != nil {
 		fmt.Println("Exited with Error: ", err)
 		return
@@ -85,14 +86,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case device.Send:
 		if msg.Value < 32767 {
-			m.ui.WheelLeft.SetValue(32767 - msg.Value)
-			m.ui.WheelRight.SetValue(0)
+			m.ui.WheelLeftBar.SetValue(32767 - msg.Value)
+			m.ui.WheelRightBar.SetValue(0)
 		} else {
-			m.ui.WheelLeft.SetValue(0)
-			m.ui.WheelRight.SetValue(msg.Value - 32767)
+			m.ui.WheelLeftBar.SetValue(0)
+			m.ui.WheelRightBar.SetValue(msg.Value - 32767)
 		}
 	case device.SendThrottle:
-		m.ui.Throttle.SetValue(255 - msg.Value)
+		m.ui.ThrottleBar.SetValue(255 - msg.Value)
 	}
 
 	return m, cmd

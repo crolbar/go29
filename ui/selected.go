@@ -7,34 +7,34 @@ var AutoCenterMarks = []int{0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100}
 
 func (u *Ui) HandleSelectedBarLeft(dev *device.Device) {
 	switch u.selectedBar {
-	case WheelRange:
+	case Range:
 		dev.SetRange(u.getSelecedBarPrevMark())
-		u.WheelRange.SetValue(dev.GetRange())
+		u.RangeBar.SetValue(dev.GetRange())
 	case AutoCenter:
 		p := u.getSelecedBarPrevMark()
 		dev.SetAutocenter(p)
-		u.AutoCenter.SetValue(p)
+		u.AutoCenterBar.SetValue(p)
 	}
 }
 
 func (u *Ui) HandleSelectedBarRight(dev *device.Device) {
 	switch u.selectedBar {
-	case WheelRange:
+	case Range:
 		dev.SetRange(u.getSelecedBarNextMark())
 		// unnecessary ?
-		u.WheelRange.SetValue(dev.GetRange())
+		u.RangeBar.SetValue(dev.GetRange())
 
 	case AutoCenter:
 		p := u.getSelecedBarNextMark()
 		dev.SetAutocenter(p)
-		u.AutoCenter.SetValue(p)
+		u.AutoCenterBar.SetValue(p)
 	}
 }
 
 func (u *Ui) getSelecedBarNextMark() int {
 	switch u.selectedBar {
-	case WheelRange:
-		v := u.WheelRange.GetValue()
+	case Range:
+		v := u.RangeBar.GetValue()
 
 		for _, m := range WheelRangeMarks {
 			if v < m {
@@ -44,7 +44,7 @@ func (u *Ui) getSelecedBarNextMark() int {
 
 		return WheelRangeMarks[len(WheelRangeMarks)-1]
 	case AutoCenter:
-		v := u.AutoCenter.GetValue()
+		v := u.AutoCenterBar.GetValue()
 
 		for _, m := range AutoCenterMarks {
 			if v < m {
@@ -60,8 +60,8 @@ func (u *Ui) getSelecedBarNextMark() int {
 
 func (u *Ui) getSelecedBarPrevMark() int {
 	switch u.selectedBar {
-	case WheelRange:
-		v := u.WheelRange.GetValue()
+	case Range:
+		v := u.RangeBar.GetValue()
 
 		len := len(WheelRangeMarks) - 1
 		for i := range WheelRangeMarks {
@@ -73,7 +73,7 @@ func (u *Ui) getSelecedBarPrevMark() int {
 
 		return WheelRangeMarks[0]
 	case AutoCenter:
-		v := u.AutoCenter.GetValue()
+		v := u.AutoCenterBar.GetValue()
 
 		len := len(AutoCenterMarks) - 1
 		for i := range AutoCenterMarks {
@@ -91,26 +91,26 @@ func (u *Ui) getSelecedBarPrevMark() int {
 
 func (u *Ui) SelectNextBar() {
 	switch u.selectedBar {
-	case WheelRange:
+	case Range:
 		u.selectedBar = AutoCenter
-		u.WheelRange.DeSelect()
-		u.AutoCenter.Select()
+		u.RangeBar.DeSelect()
+		u.AutoCenterBar.Select()
 	case AutoCenter:
-		u.selectedBar = WheelRange
-		u.AutoCenter.DeSelect()
-		u.WheelRange.Select()
+		u.selectedBar = Range
+		u.AutoCenterBar.DeSelect()
+		u.RangeBar.Select()
 	}
 }
 
 func (u *Ui) SelectPrevBar() {
 	switch u.selectedBar {
-	case WheelRange:
+	case Range:
 		u.selectedBar = AutoCenter
-		u.WheelRange.DeSelect()
-		u.AutoCenter.Select()
+		u.RangeBar.DeSelect()
+		u.AutoCenterBar.Select()
 	case AutoCenter:
-		u.selectedBar = WheelRange
-		u.AutoCenter.DeSelect()
-		u.WheelRange.Select()
+		u.selectedBar = Range
+		u.AutoCenterBar.DeSelect()
+		u.RangeBar.Select()
 	}
 }
