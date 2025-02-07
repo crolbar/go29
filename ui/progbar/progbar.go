@@ -61,6 +61,9 @@ func (p *ProgBar) SetMaxValue(max int) {
 
 func (p *ProgBar) SetMinValue(min int) {
 	p.min_value = min
+	if p.value < min {
+		p.value = min
+	}
 }
 
 func (p *ProgBar) SetVertical(vertical bool) {
@@ -87,7 +90,7 @@ func (p ProgBar) View() string {
 	v := float32(p.value)
 	min_v := float32(p.min_value)
 	max_v := float32(p.max_value)
-	perc := (v-min_v)/(max_v-min_v) + min_v
+	perc := (v-min_v)/(max_v-min_v)
 	progress := int(perc * float32(end))
 
 	for i := 0; i < end; i++ {

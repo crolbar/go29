@@ -20,6 +20,8 @@ func newModel() model {
 		ui: ui.NewUi(
 			progbar.NewProgBar("left", 3, 40),
 			progbar.NewProgBar("right", 3, 40),
+			progbar.NewProgBar("throttle", 15, 13),
+			progbar.NewProgBar("range", 3, 40),
 		),
 		dev: device.NewDevice(),
 	}
@@ -31,7 +33,7 @@ func main() {
 	go m.dev.PrintEvents()
 
 	// m.dev.SetAutocenter(5000)
-	// m.dev.SetRange(500)
+	// m.dev.SetRange(90)
 
 	// m.ui.Progbar.SetMaxValue(65535)
 	m.ui.WheelLeft.SetMaxValue(32767)
@@ -43,6 +45,14 @@ func main() {
 	m.ui.WheelLeft.Reverse(true)
 	m.ui.WheelLeft.DisableRightBorder(true)
 	m.ui.WheelRight.DisableLeftBorder(true)
+
+	m.ui.Throttle.SetVertical(true)
+	m.ui.Throttle.SetMaxValue(255)
+	m.ui.Throttle.Reverse(true)
+
+	m.ui.WheelRange.SetMaxValue(900)
+	m.ui.WheelRange.SetMinValue(30)
+	m.ui.WheelRange.SetValue(m.dev.GetRange())
 
 	p := tea.NewProgram(m)
 
@@ -65,18 +75,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "q":
 			return m, tea.Quit
-		case "u":
-			m.ui.WheelLeft.SetValue(20)
-		case "i":
-			m.ui.WheelLeft.SetValue(50)
-		case "d":
-			m.ui.WheelRight.SetValue(70)
 		case "h":
-			m.ui.WheelLeft.SetValue(200)
-		case "+":
-			m.ui.WheelLeft.SetValue(m.ui.WheelLeft.GetValue() + 1)
-		case "-":
-			m.ui.WheelLeft.SetValue(m.ui.WheelLeft.GetValue() - 1)
+			m.ui.HandleSelectedBarLeft(&m.dev)
+		case "l":
+			m.ui.HandleSelectedBarRight(&m.dev)
 		}
 
 	case device.Send:
@@ -87,6 +89,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.ui.WheelLeft.SetValue(0)
 			m.ui.WheelRight.SetValue(msg.Value - 32767)
 		}
+	case device.SendThrottle:
+		m.ui.Throttle.SetValue(255 - msg.Value)
 	}
 
 	return m, cmd

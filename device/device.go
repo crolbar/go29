@@ -40,6 +40,10 @@ type Send struct {
 	Value int
 }
 
+type SendThrottle struct {
+	Value int
+}
+
 func (d *Device) SetProgram(p *tea.Program) {
 	d.p = p
 }
@@ -100,6 +104,33 @@ func (d *Device) SetRange(value int) {
 	}
 }
 
+func (d *Device) GetRange() int {
+	file, err := os.OpenFile(fmt.Sprintf("%s/range", d.dev_path), os.O_RDONLY, 0666)
+	if err != nil {
+		fmt.Println("Error opening file:", err)
+		return 0
+	}
+	defer file.Close()
+
+	b := make([]byte, 24)
+	_, err = file.Read(b)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+		return 0
+	}
+
+	var r int = 0
+
+	for i := 0; b[i] != 10 && i < len(b); i++ {
+		if i > 0 {
+			r *= 10
+		}
+		r += int(b[i] - '0')
+	}
+
+	return r
+}
+
 func (d *Device) SetAutocenter(value int32) {
 	now := time.Now()
 	ev := InputEvent{
@@ -155,10 +186,15 @@ func (d *Device) PrintEvents() {
 
 		// fmt.Println(event)
 
-		if event.Code == 0 {
+		switch event.Code {
+		case 0:
 			// fmt.Println(event.Value)
 			d.p.Send(func() tea.Msg {
 				return Send{Value: int(event.Value)}
+			}())
+		case 2:
+			d.p.Send(func() tea.Msg {
+				return SendThrottle{Value: int(event.Value)}
 			}())
 		}
 
