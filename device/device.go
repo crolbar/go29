@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"go29/event_codes"
 	"go29/udev"
 	"os"
 	"strconv"
@@ -42,6 +43,15 @@ type Send struct {
 
 type SendThrottle struct {
 	Value int
+}
+
+type SendButton struct {
+	Value int
+}
+
+type SendDpad struct {
+	Value int
+	Code  int
 }
 
 func (d *Device) SetProgram(p *tea.Program) {
@@ -187,14 +197,24 @@ func (d *Device) PrintEvents() {
 		// fmt.Println(event)
 
 		switch event.Code {
-		case 0:
+		case event_codes.ABS_X:
 			// fmt.Println(event.Value)
 			d.p.Send(func() tea.Msg {
 				return Send{Value: int(event.Value)}
 			}())
-		case 2:
+		case event_codes.ABS_Z:
 			d.p.Send(func() tea.Msg {
 				return SendThrottle{Value: int(event.Value)}
+			}())
+		case event_codes.ABS_RY:
+			d.p.Send(func() tea.Msg {
+				return SendButton{Value: int(event.Value)}
+			}())
+		case event_codes.ABS_HAT0Y:
+			fallthrough
+		case event_codes.ABS_HAT0X:
+			d.p.Send(func() tea.Msg {
+				return SendDpad{Code: int(event.Code), Value: int(event.Value)}
 			}())
 		}
 

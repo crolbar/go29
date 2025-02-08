@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-
 	"go29/device"
 	"go29/ui"
-	pb "go29/ui/progbar"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -17,33 +15,8 @@ type model struct {
 
 func newModel() model {
 	d := device.NewDevice()
-
 	return model{
-		ui: ui.NewUi(
-			pb.NewProgBar("left", 3, 40,
-				pb.WithMaxValue(32767),
-				pb.WithDisabledRightBorder(),
-				pb.WithReverse(),
-			),
-			pb.NewProgBar("right", 3, 40,
-				pb.WithMaxValue(32767),
-				pb.WithDisabledLeftBorder(),
-			),
-			pb.NewProgBar("throttle", 15, 13,
-				pb.WithVertical(),
-				pb.WithReverse(),
-				pb.WithMaxValue(255),
-			),
-			pb.NewProgBar("range", 3, 40,
-				pb.WithMaxValue(900),
-				pb.WithMinValue(30),
-				pb.WithValue(d.GetRange()),
-				pb.WithSelected(),
-			),
-			pb.NewProgBar("autocenter", 3, 40,
-				pb.WithMaxValue(100),
-			),
-		),
+		ui: ui.NewUi(d.GetRange()),
 		dev: d,
 	}
 }
@@ -59,10 +32,6 @@ func main() {
 		fmt.Println("Exited with Error: ", err)
 		return
 	}
-}
-
-func (m model) Init() tea.Cmd {
-	return nil
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -96,9 +65,23 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case device.SendThrottle:
 		m.ui.ThrottleBar.SetValue(255 - msg.Value)
+	case device.SendButton:
+		m.ui.Buttons[msg.Value].Toggle()
+	case device.SendDpad:
+		if msg.Value == 0 {
+			m.ui.Dpad[msg.Code][-1].Release()
+			m.ui.Dpad[msg.Code][1].Release()
+			break
+		}
+
+		m.ui.Dpad[msg.Code][msg.Value].Toggle()
 	}
 
 	return m, cmd
+}
+
+func (m model) Init() tea.Cmd {
+	return nil
 }
 
 func (m model) View() string {
