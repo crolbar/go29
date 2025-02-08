@@ -13,16 +13,25 @@ type model struct {
 	ui  ui.Ui
 }
 
-func newModel() model {
-	d := device.NewDevice()
-	return model{
-		ui: ui.NewUi(d.GetRange()),
-		dev: d,
+func newModel() (*model, error) {
+	d, err := device.NewDevice()
+	if err != nil {
+		return nil, err
 	}
+
+	return &model{
+		ui:  ui.NewUi(d.GetRange()),
+		dev: *d,
+	}, nil
 }
 
 func main() {
-	m := newModel()
+	m, err := newModel()
+	if err != nil {
+		fmt.Println("Error while creating model: ", err)
+		return
+	}
+
 	p := tea.NewProgram(m, tea.WithAltScreen())
 
 	m.dev.SetProgram(p)
@@ -55,7 +64,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.ui.UpdateDimensions(msg.Width, msg.Height)
 
-	case device.Send:
+	case device.WheelTurnMsg:
 		if msg.Value < 32767 {
 			m.ui.WheelLeftBar.SetValue(32767 - msg.Value)
 			m.ui.WheelRightBar.SetValue(0)
@@ -63,15 +72,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.ui.WheelLeftBar.SetValue(0)
 			m.ui.WheelRightBar.SetValue(msg.Value - 32767)
 		}
-	case device.SendThrottle:
+	case device.ThrottlePedalMsg:
 		m.ui.ThrottleBar.SetValue(255 - msg.Value)
-	case device.SendBreak:
+	case device.BreakPedalMsg:
 		m.ui.BreakBar.SetValue(255 - msg.Value)
-	case device.SendClutch:
+	case device.ClutchPedalMsg:
 		m.ui.ClutchBar.SetValue(255 - msg.Value)
-	case device.SendButton:
+	case device.ButtonMsg:
 		m.ui.Buttons[msg.Value].Toggle()
-	case device.SendDpad:
+	case device.DpadMsg:
 		if msg.Value == 0 {
 			m.ui.Dpad[msg.Code][-1].Release()
 			m.ui.Dpad[msg.Code][1].Release()
