@@ -44,6 +44,10 @@ type SendThrottle struct {
 	Value int
 }
 
+type SendBreak struct {
+	Value int
+}
+
 type SendButton struct {
 	Value int
 }
@@ -199,6 +203,10 @@ func (d *Device) PrintEvents() {
 		case 2:
 			d.p.Send(func() tea.Msg {
 				return SendThrottle{Value: int(event.Value)}
+			}())
+		case 5:
+			d.p.Send(func() tea.Msg {
+				return SendBreak{Value: int(event.Value)}
 			}())
 		case 4:
 			d.p.Send(func() tea.Msg {

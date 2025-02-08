@@ -5,6 +5,7 @@ import (
 	"go29/device"
 	"go29/ui"
 	pb "go29/ui/progbar"
+	"go29/virt_device"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -12,6 +13,8 @@ import (
 type model struct {
 	dev device.Device
 	ui  ui.Ui
+	vd  virtDev.VirtDev
+	pressed bool
 }
 
 func newModel() model {
@@ -44,6 +47,7 @@ func newModel() model {
 			),
 		),
 		dev: d,
+		vd: *virtDev.NewVirtDev(),
 	}
 }
 
@@ -97,6 +101,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.ui.ThrottleBar.SetValue(255 - msg.Value)
 	case device.SendButton:
 		m.ui.Button.Toggle()
+
+	case device.SendBreak:
+		if msg.Value > 40 && !m.pressed {
+			m.vd.PressA()
+			m.pressed = true
+		} else {
+			m.vd.ReleaseA()
+			m.pressed = false
+		}
 	}
 
 	return m, cmd
