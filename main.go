@@ -65,6 +65,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case device.SendThrottle:
 		m.ui.ThrottleBar.SetValue(255 - msg.Value)
+	case device.SendBreak:
+		m.ui.BreakBar.SetValue(255 - msg.Value)
+	case device.SendClutch:
+		m.ui.ClutchBar.SetValue(255 - msg.Value)
 	case device.SendButton:
 		m.ui.Buttons[msg.Value].Toggle()
 	case device.SendDpad:

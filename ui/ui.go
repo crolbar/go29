@@ -18,7 +18,11 @@ const (
 type Ui struct {
 	WheelLeftBar  pb.ProgBar
 	WheelRightBar pb.ProgBar
-	ThrottleBar   pb.ProgBar
+
+	ThrottleBar pb.ProgBar
+	BreakBar    pb.ProgBar
+	ClutchBar   pb.ProgBar
+
 	RangeBar      pb.ProgBar
 	AutoCenterBar pb.ProgBar
 
@@ -46,6 +50,16 @@ func NewUi(wRange int) Ui {
 			pb.WithDisabledLeftBorder(),
 		),
 		ThrottleBar: pb.NewProgBar("throttle", 15, 13,
+			pb.WithVertical(),
+			pb.WithReverse(),
+			pb.WithMaxValue(255),
+		),
+		BreakBar: pb.NewProgBar("break", 15, 13,
+			pb.WithVertical(),
+			pb.WithReverse(),
+			pb.WithMaxValue(255),
+		),
+		ClutchBar: pb.NewProgBar("clutch", 15, 13,
 			pb.WithVertical(),
 			pb.WithReverse(),
 			pb.WithMaxValue(255),
@@ -122,6 +136,11 @@ func (u Ui) Render() string {
 		u.WheelRightBar.View(),
 	)
 
+	if u.width-lipgloss.Width(wheelBar) < 40 {
+		u.RangeBar.SetVertical(true)
+		u.AutoCenterBar.SetVertical(true)
+	}
+
 	sliderBars := s.MarginLeft(10).
 		Render(
 			lipgloss.JoinVertical(lipgloss.Left,
@@ -132,10 +151,11 @@ func (u Ui) Render() string {
 
 	buttons := u.generateButtonIndicators()
 
-	throttle := u.ThrottleBar.View()
 	pedals :=
 		lipgloss.JoinHorizontal(lipgloss.Left,
-			throttle,
+			u.ClutchBar.View(),
+			u.BreakBar.View(),
+			u.ThrottleBar.View(),
 		)
 
 	buttonsPedals := s.

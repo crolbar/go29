@@ -41,6 +41,12 @@ type Send struct {
 	Value int
 }
 
+type SendBreak struct {
+	Value int
+}
+type SendClutch struct {
+	Value int
+}
 type SendThrottle struct {
 	Value int
 }
@@ -202,9 +208,17 @@ func (d *Device) PrintEvents() {
 			d.p.Send(func() tea.Msg {
 				return Send{Value: int(event.Value)}
 			}())
+		case event_codes.ABS_Y:
+			d.p.Send(func() tea.Msg {
+				return SendClutch{Value: int(event.Value)}
+			}())
 		case event_codes.ABS_Z:
 			d.p.Send(func() tea.Msg {
 				return SendThrottle{Value: int(event.Value)}
+			}())
+		case event_codes.ABS_RZ:
+			d.p.Send(func() tea.Msg {
+				return SendBreak{Value: int(event.Value)}
 			}())
 		case event_codes.ABS_RY:
 			d.p.Send(func() tea.Msg {

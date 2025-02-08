@@ -113,6 +113,13 @@ func (p *ProgBar) DeSelect() {
 	p.selected = false
 }
 
+func (p *ProgBar) SetVertical(b bool) {
+	p.vertical = b
+	tmp := p.height
+	p.height = p.width / 3
+	p.width = tmp * 3
+}
+
 func (p *ProgBar) SetTitle(title string) {
 	p.title = title
 }
