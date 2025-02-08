@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-
 	"go29/device"
 	"go29/ui"
 	pb "go29/ui/progbar"
@@ -96,6 +95,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case device.SendThrottle:
 		m.ui.ThrottleBar.SetValue(255 - msg.Value)
+	case device.SendButton:
+		m.ui.Button.Toggle()
 	}
 
 	return m, cmd

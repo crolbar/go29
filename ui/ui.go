@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"go29/ui/button"
 	"go29/ui/progbar"
 
 	"github.com/charmbracelet/lipgloss"
@@ -19,7 +20,10 @@ type Ui struct {
 	ThrottleBar   progbar.ProgBar
 	RangeBar      progbar.ProgBar
 	AutoCenterBar progbar.ProgBar
-	selectedBar   SelectedBar
+
+	selectedBar SelectedBar
+
+	Button button.Button
 
 	height int
 	width  int
@@ -38,7 +42,10 @@ func NewUi(
 		ThrottleBar:   throttleBar,
 		RangeBar:      wheelRangeBar,
 		AutoCenterBar: autoCenterBar,
-		selectedBar:   Range,
+
+		Button: button.NewButton("test"),
+
+		selectedBar: Range,
 
 		height: 0,
 		width:  0,
@@ -57,16 +64,16 @@ func (u Ui) Render() string {
 		PaddingBottom(2).
 		PaddingRight(5).
 		PaddingLeft(5).
-		Margin(1).
-		Height(u.height - 5).
-		Width(u.width - 5)
+		Height(u.height).
+		Width(u.width)
 
 	wheelBar := lipgloss.JoinHorizontal(lipgloss.Left,
 		u.WheelLeftBar.View(),
 		u.WheelRightBar.View(),
 	)
 
-	sliderBars := s.MarginLeft(10).
+	sliderBars := s.
+		MarginLeft(10).
 		Render(
 			lipgloss.JoinVertical(lipgloss.Left,
 				u.RangeBar.View(),
@@ -74,12 +81,38 @@ func (u Ui) Render() string {
 			),
 		)
 
+	var buttons string
+	{
+		for i := 0; i < 2; i++ {
+			line := ""
+
+			for j := 0; j < 10; j++ {
+				line = lipgloss.JoinHorizontal(lipgloss.Left,
+					line,
+					u.Button.View(),
+				)
+			}
+
+			buttons = lipgloss.JoinVertical(lipgloss.Left,
+				buttons,
+				line,
+			)
+		}
+	}
+
 	throttle := u.ThrottleBar.View()
-	pedals := s.Height(u.height - lipgloss.Height(wheelBar) - lipgloss.Height(throttle)/2).
+	pedals :=
+		lipgloss.JoinHorizontal(lipgloss.Left,
+			throttle,
+		)
+
+	buttonsPedals := s.
+		Height(u.height - lipgloss.Height(wheelBar) - 4).
 		AlignVertical(lipgloss.Bottom).
 		Render(
-			lipgloss.JoinHorizontal(lipgloss.Left,
-				throttle,
+			lipgloss.JoinVertical(lipgloss.Left,
+				buttons,
+				pedals,
 			),
 		)
 
@@ -87,7 +120,7 @@ func (u Ui) Render() string {
 		lipgloss.JoinHorizontal(lipgloss.Top,
 			lipgloss.JoinVertical(lipgloss.Left,
 				wheelBar,
-				pedals,
+				buttonsPedals,
 			),
 			sliderBars,
 		),
