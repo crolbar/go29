@@ -1,79 +1,58 @@
 package device
 
 import (
-	"bytes"
-	"encoding/binary"
 	"fmt"
-	tea "github.com/charmbracelet/bubbletea"
-	"go29/event_codes"
 	"syscall"
-	"time"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
-type WheelTurnMsg struct{ Value int }
-type BreakPedalMsg struct{ Value int }
-type ClutchPedalMsg struct{ Value int }
-type ThrottlePedalMsg struct{ Value int }
-type ButtonMsg struct{ Value int }
-type DpadMsg struct {
-	Value int
-	Code  int
+type InputEvents struct {
+	Data []byte
+	N    int
 }
 
-func (d *Device) PrintEvents() {
-	for true {
-		var data []byte = make([]byte, 300)
+func (d *Device) SpawnEventListenerThread(p *tea.Program) {
+	fd, err := syscall.Open(d.dev_name, syscall.O_RDONLY, 0644)
+	if err != nil {
+		fmt.Println("Error opening dev event", err)
+	}
 
-		fd, err := syscall.Open(d.dev_name, syscall.O_RDONLY, 0644)
-		if err != nil {
-			fmt.Println("Error opening dev event", err)
+	go eventListener(fd, p)
+}
+
+func eventListener(fd int, p *tea.Program) {
+	epfd, err := syscall.EpollCreate1(0)
+	if err != nil {
+		fmt.Println("Error creating epoll:", err)
+		return
+	}
+	defer syscall.Close(epfd)
+
+	ev := &syscall.EpollEvent{
+		Events: syscall.EPOLLIN,
+		Fd:     int32(fd),
+	}
+	err = syscall.EpollCtl(epfd, syscall.EPOLL_CTL_ADD, fd, ev)
+	if err != nil {
+		fmt.Println("Error adding fd to epoll:", err)
+		return
+	}
+
+	var data []byte = make([]byte, 24*64) // 64 input events (sizeof(input_event) == 24)
+
+	for {
+		epollEvents := make([]syscall.EpollEvent, 1)
+		n, err := syscall.EpollWait(epfd, epollEvents, 500)
+
+		if n > 0 {
+			n, err = syscall.Read(fd, data)
+			if err != nil {
+				fmt.Println("Error reading input_event:", err)
+				continue
+			}
+
+			p.Send(InputEvents{Data: data, N: n})
 		}
-
-		_, err = syscall.Read(fd, data)
-		if err != nil {
-			fmt.Println("Error reading input_event:", err)
-		}
-
-		var event InputEvent
-		reader := bytes.NewReader(data)
-		err = binary.Read(reader, binary.LittleEndian, &event)
-		if err != nil {
-			fmt.Println("binary.Read Error:", err)
-			return
-		}
-
-		// fmt.Println(event)
-
-		switch event.Code {
-		case event_codes.ABS_X:
-			// fmt.Println(event.Value)
-			d.p.Send(func() tea.Msg {
-				return WheelTurnMsg{Value: int(event.Value)}
-			}())
-		case event_codes.ABS_Y:
-			d.p.Send(func() tea.Msg {
-				return ClutchPedalMsg{Value: int(event.Value)}
-			}())
-		case event_codes.ABS_Z:
-			d.p.Send(func() tea.Msg {
-				return ThrottlePedalMsg{Value: int(event.Value)}
-			}())
-		case event_codes.ABS_RZ:
-			d.p.Send(func() tea.Msg {
-				return BreakPedalMsg{Value: int(event.Value)}
-			}())
-		case event_codes.ABS_RY:
-			d.p.Send(func() tea.Msg {
-				return ButtonMsg{Value: int(event.Value)}
-			}())
-		case event_codes.ABS_HAT0Y:
-			fallthrough
-		case event_codes.ABS_HAT0X:
-			d.p.Send(func() tea.Msg {
-				return DpadMsg{Code: int(event.Code), Value: int(event.Value)}
-			}())
-		}
-
-		time.Sleep(1 * time.Millisecond)
 	}
 }

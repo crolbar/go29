@@ -3,7 +3,6 @@ package device
 import (
 	"errors"
 	"fmt"
-	tea "github.com/charmbracelet/bubbletea"
 	"go29/udev"
 	"strconv"
 	"strings"
@@ -26,12 +25,6 @@ type Device struct {
 	dev      *udev.Device
 	dev_path string
 	dev_name string
-
-	p *tea.Program
-}
-
-func (d *Device) SetProgram(p *tea.Program) {
-	d.p = p
 }
 
 func NewDevice() (*Device, error) {

@@ -13,29 +13,20 @@ type model struct {
 	ui  ui.Ui
 }
 
-func newModel() (*model, error) {
+func main() {
 	d, err := device.NewDevice()
 	if err != nil {
-		return nil, err
-	}
-
-	return &model{
-		ui:  ui.NewUi(d.GetRange()),
-		dev: *d,
-	}, nil
-}
-
-func main() {
-	m, err := newModel()
-	if err != nil {
-		fmt.Println("Error while creating model: ", err)
+		fmt.Println("Error while creating device: ", err)
 		return
 	}
 
-	p := tea.NewProgram(m, tea.WithAltScreen())
+	p := tea.NewProgram(
+		model{
+			ui:  ui.NewUi(d.GetRange()),
+			dev: *d,
+		}, tea.WithAltScreen())
 
-	m.dev.SetProgram(p)
-	go m.dev.PrintEvents()
+	d.SpawnEventListenerThread(p)
 
 	if _, err := p.Run(); err != nil {
 		fmt.Println("Exited with Error: ", err)
@@ -49,45 +40,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "q":
+		case "q", "esc":
 			return m, tea.Quit
-		case "h":
+		case "left", "h":
 			m.ui.HandleSelectedBarLeft(&m.dev)
-		case "l":
+		case "right", "l":
 			m.ui.HandleSelectedBarRight(&m.dev)
-
-		case "tab":
+		case "tab", "j", "down":
 			m.ui.SelectNextBar()
-		case "shift+tab":
+		case "shift+tab", "k", "up":
 			m.ui.SelectPrevBar()
 		}
 	case tea.WindowSizeMsg:
 		m.ui.UpdateDimensions(msg.Width, msg.Height)
-
-	case device.WheelTurnMsg:
-		if msg.Value < 32767 {
-			m.ui.WheelLeftBar.SetValue(32767 - msg.Value)
-			m.ui.WheelRightBar.SetValue(0)
-		} else {
-			m.ui.WheelLeftBar.SetValue(0)
-			m.ui.WheelRightBar.SetValue(msg.Value - 32767)
-		}
-	case device.ThrottlePedalMsg:
-		m.ui.ThrottleBar.SetValue(255 - msg.Value)
-	case device.BreakPedalMsg:
-		m.ui.BreakBar.SetValue(255 - msg.Value)
-	case device.ClutchPedalMsg:
-		m.ui.ClutchBar.SetValue(255 - msg.Value)
-	case device.ButtonMsg:
-		m.ui.Buttons[msg.Value].Toggle()
-	case device.DpadMsg:
-		if msg.Value == 0 {
-			m.ui.Dpad[msg.Code][-1].Release()
-			m.ui.Dpad[msg.Code][1].Release()
-			break
-		}
-
-		m.ui.Dpad[msg.Code][msg.Value].Toggle()
+	case device.InputEvents:
+		m.handleInputEvents(msg)
 	}
 
 	return m, cmd

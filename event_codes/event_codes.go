@@ -1,4 +1,5 @@
 package event_codes
+
 // EVERYTHING IS SPECIFIC FOR THE Logitech G29 PS
 
 // CODES
@@ -10,6 +11,8 @@ const (
 	ABS_RZ    = 0x05 // break
 	ABS_HAT0X = 0x10 // d-pad up/down
 	ABS_HAT0Y = 0x11 // d-pad left/right
+	EV_KEY    = 0x01 // send on buttons (unneeded)
+	EV_SYN    = 0x00 // sync
 )
 
 // button values under code 4
