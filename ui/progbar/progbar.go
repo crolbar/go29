@@ -161,7 +161,7 @@ func (p ProgBar) View() string {
 
 	for i := 1; i < iff(p.vertical, p.width, p.height); i++ {
 		if p.vertical {
-			barStr = lipgloss.JoinHorizontal(lipgloss.Center,
+			barStr = lipgloss.JoinHorizontal(lipgloss.Left,
 				barStr,
 				tmp,
 			)

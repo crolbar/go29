@@ -2,8 +2,11 @@ package ui
 
 import (
 	ec "go29/event_codes"
+	"go29/ui/button"
 	b "go29/ui/button"
 	"sort"
+
+	"github.com/charmbracelet/lipgloss"
 )
 
 var buttonsMap = map[int]*b.Button{
@@ -68,4 +71,58 @@ func setDpadMapKeys() {
 		}
 	}
 	sort.Ints(dpadMapKeys)
+}
+
+func (u *Ui) renderButtons() string {
+	buttons := ""
+
+	j := 0
+
+	for i := 0; i < 3; i++ {
+		lineMaxJ := j + 10
+		line := ""
+
+		for ; j < lineMaxJ && j < len(buttonMapKeys); j++ {
+			line = lipgloss.JoinHorizontal(lipgloss.Left,
+				line,
+				(u.Buttons[buttonMapKeys[j]]).View(),
+			)
+		}
+
+		if i == 2 {
+			var dpad string
+			if !u.reqRender[Dpad] && u.havePreRender(Dpad) {
+				dpad = u.preRenders[Dpad]
+			} else {
+				dpad = renderDpad(u.Dpad)
+				u.preRenders[Dpad] = dpad
+				u.reqRender[Dpad] = false
+			}
+
+			line = lipgloss.JoinHorizontal(lipgloss.Left,
+				line,
+				dpad,
+			)
+		}
+
+		buttons = lipgloss.JoinVertical(lipgloss.Left,
+			buttons,
+			line,
+		)
+	}
+
+	return buttons
+}
+
+func renderDpad(Dpad map[int]map[int]*button.Button) string {
+	dpad := ""
+
+	for di, db := range dpadMapKeys {
+		dpad = lipgloss.JoinHorizontal(lipgloss.Left,
+			dpad,
+			((Dpad[iff((di&1) > 0, ec.ABS_HAT0X, ec.ABS_HAT0Y)])[db]).View(),
+		)
+	}
+
+	return dpad
 }

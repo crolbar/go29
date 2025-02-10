@@ -57,6 +57,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.handleInputEvents(msg)
 	}
 
+	m.ui.PreRender()
+
 	return m, cmd
 }
 

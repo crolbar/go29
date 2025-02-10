@@ -1,11 +1,8 @@
 package ui
 
 import (
-	ec "go29/event_codes"
 	"go29/ui/button"
 	pb "go29/ui/progbar"
-
-	"github.com/charmbracelet/lipgloss"
 )
 
 type SelectedBar int
@@ -13,6 +10,22 @@ type SelectedBar int
 const (
 	Range SelectedBar = iota
 	AutoCenter
+)
+
+type UiElement int
+
+const (
+	Screen UiElement = iota
+	WheelBar
+	WheelBarLeft  // prev only
+	WheelBarRight // prev only
+	ThrottleBar
+	BreakBar
+	ClutchBar
+	RangeBar
+	AutoCenterBar
+	Buttons // includes Dpad
+	Dpad    // part of Buttons
 )
 
 type Ui struct {
@@ -30,6 +43,10 @@ type Ui struct {
 
 	Buttons map[int]*button.Button
 	Dpad    map[int]map[int]*button.Button
+
+	preRenders map[UiElement]string
+	prevValues map[UiElement]int
+	reqRender  map[UiElement]bool
 
 	height int
 	width  int
@@ -77,6 +94,10 @@ func NewUi(wRange int) Ui {
 		Buttons: buttonsMap,
 		Dpad:    dpadMap,
 
+		preRenders: make(map[UiElement]string),
+		prevValues: make(map[UiElement]int),
+		reqRender:  make(map[UiElement]bool),
+
 		selectedBar: Range,
 
 		height: 0,
@@ -89,94 +110,8 @@ func (u *Ui) UpdateDimensions(width, height int) {
 	u.height = height
 }
 
-var s lipgloss.Style = lipgloss.NewStyle()
-
-var screenStyle lipgloss.Style = s.PaddingTop(2).
-	PaddingBottom(2).
-	PaddingRight(5).
-	PaddingLeft(5)
-
-func (u Ui) generateButtonIndicators() string {
-	buttons := ""
-
-	j := 0
-
-	for i := 0; i < 3; i++ {
-		lineMaxJ := j + 10
-		line := ""
-
-		for ; j < lineMaxJ && j < len(buttonMapKeys); j++ {
-			line = lipgloss.JoinHorizontal(lipgloss.Left,
-				line,
-				(u.Buttons[buttonMapKeys[j]]).View(),
-			)
-		}
-
-		if i == 2 {
-			for di, db := range dpadMapKeys {
-				line = lipgloss.JoinHorizontal(lipgloss.Left,
-					line,
-					((u.Dpad[iff((di&1) > 0, ec.ABS_HAT0X, ec.ABS_HAT0Y)])[db]).View(),
-				)
-			}
-		}
-
-		buttons = lipgloss.JoinVertical(lipgloss.Left,
-			buttons,
-			line,
-		)
-	}
-
-	return buttons
-}
-
 func (u Ui) Render() string {
-	wheelBar := lipgloss.JoinHorizontal(lipgloss.Left,
-		u.WheelLeftBar.View(),
-		u.WheelRightBar.View(),
-	)
-
-	if u.width-lipgloss.Width(wheelBar) < 40 {
-		u.RangeBar.SetVertical(true)
-		u.AutoCenterBar.SetVertical(true)
-	}
-
-	sliderBars := s.MarginLeft(10).
-		Render(
-			lipgloss.JoinVertical(lipgloss.Left,
-				u.RangeBar.View(),
-				u.AutoCenterBar.View(),
-			),
-		)
-
-	buttons := u.generateButtonIndicators()
-
-	pedals :=
-		lipgloss.JoinHorizontal(lipgloss.Left,
-			u.ClutchBar.View(),
-			u.BreakBar.View(),
-			u.ThrottleBar.View(),
-		)
-
-	buttonsPedals := s.
-		Height(u.height - lipgloss.Height(wheelBar) - 4).
-		AlignVertical(lipgloss.Bottom).
-		Render(
-			lipgloss.JoinVertical(lipgloss.Left,
-				buttons,
-				pedals,
-			),
-		)
-
-	return screenStyle.Render(
-		lipgloss.JoinHorizontal(lipgloss.Top,
-			lipgloss.JoinVertical(lipgloss.Left,
-				wheelBar,
-				buttonsPedals,
-			),
-			sliderBars,
-		),
-	)
+	return u.preRenders[Screen]
 }
 
 func iff[T int](b bool, f, s T) T {

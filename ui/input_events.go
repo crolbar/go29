@@ -27,10 +27,11 @@ func (u *Ui) HandleInputEvent(evt device.InputEvent) {
 	case event_codes.ABS_Y:
 		u.ClutchBar.SetValue(255 - value)
 	case event_codes.ABS_RY:
+		u.reqRender[Buttons] = true
 		u.Buttons[value].Toggle()
-	case event_codes.ABS_HAT0Y:
-		fallthrough
-	case event_codes.ABS_HAT0X:
+	case event_codes.ABS_HAT0X, event_codes.ABS_HAT0Y:
+		u.reqRender[Dpad] = true
+
 		if value == 0 {
 			u.Dpad[code][-1].Release()
 			u.Dpad[code][1].Release()
