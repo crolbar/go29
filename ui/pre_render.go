@@ -2,6 +2,7 @@ package ui
 
 import (
 	"github.com/charmbracelet/lipgloss"
+	"github.com/crolbar/lipbalm"
 )
 
 var s lipgloss.Style = lipgloss.NewStyle()
@@ -19,9 +20,9 @@ func (u *Ui) PreRender() {
 	var (
 		rangeBar      = u.preRenderRangeBar()
 		autoCenterBar = u.preRenderAutoCenterBar()
-		sliderBars    = s.MarginLeft(10).
+		sliderBars = s.MarginLeft(10).
 				Render(
-				lipgloss.JoinVertical(lipgloss.Left,
+				lipbalm.JoinVertical(lipbalm.Left,
 					rangeBar,
 					autoCenterBar,
 				),
@@ -33,7 +34,7 @@ func (u *Ui) PreRender() {
 		clutchBar   = u.preRenderClutchBar()
 		breakBar    = u.preRenderBreakBar()
 		throttleBar = u.preRenderThrottleBar()
-		pedals      = lipgloss.JoinHorizontal(lipgloss.Left,
+		pedals      = lipbalm.JoinHorizontal(lipbalm.Left,
 			clutchBar,
 			breakBar,
 			throttleBar,
@@ -43,7 +44,7 @@ func (u *Ui) PreRender() {
 				Height(u.height - lipgloss.Height(wheelBar) - 4).
 				AlignVertical(lipgloss.Bottom).
 				Render(
-				lipgloss.JoinVertical(lipgloss.Left,
+				lipbalm.JoinVertical(lipbalm.Left,
 					buttons,
 					pedals,
 				),
@@ -51,8 +52,8 @@ func (u *Ui) PreRender() {
 	)
 
 	u.preRenders[Screen] = screenStyle.Render(
-		lipgloss.JoinHorizontal(lipgloss.Top,
-			lipgloss.JoinVertical(lipgloss.Left,
+		lipbalm.JoinHorizontal(lipbalm.Top,
+			lipbalm.JoinVertical(lipbalm.Left,
 				wheelBar,
 				buttonsPedals,
 			),
@@ -170,7 +171,7 @@ func (u *Ui) preRenderWheelBar() string {
 		return u.preRenders[WheelBar]
 	}
 
-	wheelBar := lipgloss.JoinHorizontal(lipgloss.Left,
+	wheelBar := lipbalm.JoinHorizontal(lipbalm.Left,
 		u.WheelLeftBar.View(),
 		u.WheelRightBar.View(),
 	)

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/crolbar/lipbalm"
 )
 
 type ProgBar struct {
@@ -161,7 +162,7 @@ func (p ProgBar) View() string {
 
 	for i := 1; i < iff(p.vertical, p.width, p.height); i++ {
 		if p.vertical {
-			barStr = lipgloss.JoinHorizontal(lipgloss.Left,
+			barStr = lipbalm.JoinHorizontal(lipbalm.Left,
 				barStr,
 				tmp,
 			)
@@ -198,7 +199,7 @@ func (p ProgBar) View() string {
 		Height(p.height).
 		Render(barStr)
 
-	return lipgloss.JoinVertical(lipgloss.Center,
+	return lipbalm.JoinVertical(lipbalm.Center,
 		title,
 		bar,
 	)

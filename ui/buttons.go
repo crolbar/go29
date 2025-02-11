@@ -6,7 +6,7 @@ import (
 	b "go29/ui/button"
 	"sort"
 
-	"github.com/charmbracelet/lipgloss"
+	"github.com/crolbar/lipbalm"
 )
 
 var buttonsMap = map[int]*b.Button{
@@ -83,7 +83,7 @@ func (u *Ui) renderButtons() string {
 		line := ""
 
 		for ; j < lineMaxJ && j < len(buttonMapKeys); j++ {
-			line = lipgloss.JoinHorizontal(lipgloss.Left,
+			line = lipbalm.JoinHorizontal(lipbalm.Left,
 				line,
 				(u.Buttons[buttonMapKeys[j]]).View(),
 			)
@@ -99,13 +99,13 @@ func (u *Ui) renderButtons() string {
 				u.reqRender[Dpad] = false
 			}
 
-			line = lipgloss.JoinHorizontal(lipgloss.Left,
+			line = lipbalm.JoinHorizontal(lipbalm.Left,
 				line,
 				dpad,
 			)
 		}
 
-		buttons = lipgloss.JoinVertical(lipgloss.Left,
+		buttons = lipbalm.JoinVertical(lipbalm.Left,
 			buttons,
 			line,
 		)
@@ -118,7 +118,7 @@ func renderDpad(Dpad map[int]map[int]*button.Button) string {
 	dpad := ""
 
 	for di, db := range dpadMapKeys {
-		dpad = lipgloss.JoinHorizontal(lipgloss.Left,
+		dpad = lipbalm.JoinHorizontal(lipbalm.Left,
 			dpad,
 			((Dpad[iff((di&1) > 0, ec.ABS_HAT0X, ec.ABS_HAT0Y)])[db]).View(),
 		)
