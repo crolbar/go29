@@ -1,13 +1,11 @@
 package button
 
-import "github.com/charmbracelet/lipgloss"
+import lb "github.com/crolbar/lipbalm"
 
 type Button struct {
 	title   string
 	pressed bool
 }
-
-var s lipgloss.Style = lipgloss.NewStyle()
 
 func NewButton(title string) *Button {
 	return &Button{
@@ -25,13 +23,18 @@ func (b *Button) Release() {
 }
 
 func (b Button) View() string {
-	return s.Border(lipgloss.NormalBorder()).
-		Background(lipgloss.Color(iff(b.pressed, "57", ""))).
-		Padding(1).
-		Render(b.title)
+	return lb.Border(
+		lb.NormalBorder(),
+		lb.SetColor(
+			lb.ColorBg(iff(b.pressed, uint8(57), 0)),
+			lb.Margin(1,
+				b.title,
+			),
+		),
+	)
 }
 
-func iff[T string](b bool, f, s T) T {
+func iff[T string | uint8](b bool, f, s T) T {
 	if b {
 		return f
 	}

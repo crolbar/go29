@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
-	"github.com/crolbar/lipbalm"
+	lb "github.com/crolbar/lipbalm"
 )
 
 type ProgBar struct {
@@ -24,8 +23,6 @@ type ProgBar struct {
 	noRightBorder bool
 	selected      bool
 }
-
-var s lipgloss.Style = lipgloss.NewStyle()
 
 func WithDisabledRightBorder() Opts {
 	return func(p *ProgBar) {
@@ -162,7 +159,7 @@ func (p ProgBar) View() string {
 
 	for i := 1; i < iff(p.vertical, p.width, p.height); i++ {
 		if p.vertical {
-			barStr = lipbalm.JoinHorizontal(lipbalm.Left,
+			barStr = lb.JoinHorizontal(lb.Left,
 				barStr,
 				tmp,
 			)
@@ -172,40 +169,44 @@ func (p ProgBar) View() string {
 		barStr = fmt.Sprintf("%s\n%s", barStr, tmp)
 	}
 
-	borderColor := lipgloss.Color(iff(p.selected, "57", "15"))
+	borderColor := lb.Color(uint8(iff(p.selected, 57, 15)))
 
-	title := s.Border(lipgloss.Border{
+	title := lb.Border(lb.BorderType{
 		Left:        "│",
 		Right:       "│",
 		Bottom:      "─",
 		BottomRight: "┤",
 		BottomLeft:  "├",
-	}).
-		BorderTop(false).
-		BorderRight(!p.noRightBorder).
-		BorderLeft(!p.noLeftBorder).
-		BorderForeground(borderColor).
-		Width(p.width).
-		Align(lipgloss.Center).
-		Render(fmt.Sprintf("%s(%d)", p.title, p.value))
+		ColorFg:     borderColor,
+	}, lb.ExpandHorizontal(
+		p.width, lb.Center,
+		fmt.Sprintf("%s(%d)", p.title, p.value),
+	),
+		true,
+		p.noRightBorder,
+		false,
+		p.noLeftBorder)
 
-	bar := s.Border(lipgloss.NormalBorder()).
-		BorderTop(false).
-		BorderRight(!p.noRightBorder).
-		BorderLeft(!p.noLeftBorder).
-		BorderForeground(borderColor).
-		Foreground(lipgloss.Color("57")).
-		Width(p.width).
-		Height(p.height).
-		Render(barStr)
+	bar := lb.Border(lb.NormalBorder(borderColor),
+		lb.SetColor(lb.Color(57),
+			lb.ExpandHorizontal(p.width, lb.Left,
+				lb.ExpandVertical(p.height, lb.Left,
+					barStr,
+				),
+			),
+		),
+		true,
+		p.noRightBorder,
+		false,
+		p.noLeftBorder)
 
-	return lipbalm.JoinVertical(lipbalm.Center,
+	return lb.JoinVertical(lb.Center,
 		title,
 		bar,
 	)
 }
 
-func iff[T int | bool | string](b bool, f, s T) T {
+func iff[T int | bool | string | uint8](b bool, f, s T) T {
 	if b {
 		return f
 	}

@@ -1,16 +1,9 @@
 package ui
 
 import (
-	"github.com/charmbracelet/lipgloss"
-	"github.com/crolbar/lipbalm"
+	lb "github.com/crolbar/lipbalm"
+	"strings"
 )
-
-var s lipgloss.Style = lipgloss.NewStyle()
-
-var screenStyle lipgloss.Style = s.PaddingTop(2).
-	PaddingBottom(2).
-	PaddingRight(5).
-	PaddingLeft(5)
 
 func (u *Ui) PreRender() {
 	var (
@@ -20,13 +13,12 @@ func (u *Ui) PreRender() {
 	var (
 		rangeBar      = u.preRenderRangeBar()
 		autoCenterBar = u.preRenderAutoCenterBar()
-		sliderBars = s.MarginLeft(10).
-				Render(
-				lipbalm.JoinVertical(lipbalm.Left,
-					rangeBar,
-					autoCenterBar,
-				),
-			)
+		sliderBars    = lb.MarginLeft(10,
+			lb.JoinVertical(lb.Left,
+				rangeBar,
+				autoCenterBar,
+			),
+		)
 	)
 
 	var (
@@ -34,32 +26,31 @@ func (u *Ui) PreRender() {
 		clutchBar   = u.preRenderClutchBar()
 		breakBar    = u.preRenderBreakBar()
 		throttleBar = u.preRenderThrottleBar()
-		pedals      = lipbalm.JoinHorizontal(lipbalm.Left,
+		pedals      = lb.JoinHorizontal(lb.Left,
 			clutchBar,
 			breakBar,
 			throttleBar,
 		)
 
-		buttonsPedals = s.
-				Height(u.height - lipgloss.Height(wheelBar) - 4).
-				AlignVertical(lipgloss.Bottom).
-				Render(
-				lipbalm.JoinVertical(lipbalm.Left,
-					buttons,
-					pedals,
-				),
-			)
+		buttonsPedals = lb.ExpandVertical(
+			u.height-(strings.Count(wheelBar, "\n")+1)-4,
+			lb.Bottom,
+			lb.JoinVertical(lb.Left,
+				buttons,
+				pedals,
+			),
+		)
 	)
 
-	u.preRenders[Screen] = screenStyle.Render(
-		lipbalm.JoinHorizontal(lipbalm.Top,
-			lipbalm.JoinVertical(lipbalm.Left,
+	u.preRenders[Screen] = lb.MarginVertical(2, lb.MarginHorizontal(5,
+		lb.JoinHorizontal(lb.Top,
+			lb.JoinVertical(lb.Left,
 				wheelBar,
 				buttonsPedals,
 			),
 			sliderBars,
 		),
-	)
+	))
 }
 
 func (u Ui) havePreRender(elem UiElement) bool {
@@ -171,7 +162,7 @@ func (u *Ui) preRenderWheelBar() string {
 		return u.preRenders[WheelBar]
 	}
 
-	wheelBar := lipbalm.JoinHorizontal(lipbalm.Left,
+	wheelBar := lb.JoinHorizontal(lb.Left,
 		u.WheelLeftBar.View(),
 		u.WheelRightBar.View(),
 	)
