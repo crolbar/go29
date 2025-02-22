@@ -131,79 +131,57 @@ func (p *ProgBar) GetValue() int {
 }
 
 func (p ProgBar) View() string {
-	var barbi strings.Builder
+	var (
+		sb  strings.Builder
+		end = iff(p.vertical, p.height, p.width)
 
-	end := iff(p.vertical, p.height, p.width)
+		v        = float32(p.value)
+		min_v    = float32(p.min_value)
+		max_v    = float32(p.max_value)
+		perc     = (v - min_v) / (max_v - min_v)
+		progress = int(perc * float32(end))
 
-	v := float32(p.value)
-	min_v := float32(p.min_value)
-	max_v := float32(p.max_value)
-	perc := (v - min_v) / (max_v - min_v)
-	progress := int(perc * float32(end))
+		fullLine  = strings.Repeat("█", iff(p.vertical, p.width, progress))
+		emptyline = strings.Repeat(" ", iff(p.vertical, p.width, end-progress))
 
-	for i := 0; i < end; i++ {
-		if iff(p.reverse, end-1-i, i) < progress {
-			barbi.WriteString("█")
-		} else {
-			barbi.WriteString(" ")
+		endIdx = p.height - 1
+
+		getLineAt = func(i int) string {
+			if p.vertical {
+				if iff(p.reverse, end-1-i, i) < progress {
+					return fullLine
+				}
+
+				return emptyline
+			}
+
+			if p.reverse {
+				return emptyline + fullLine
+			}
+
+			return fullLine + emptyline
 		}
-
-		if p.vertical && i != end-1 {
-			barbi.WriteString("\n")
-		}
-	}
-
-	tmp := barbi.String()
-
-	barStr := barbi.String()
-
-	for i := 1; i < iff(p.vertical, p.width, p.height); i++ {
-		if p.vertical {
-			barStr = lb.JoinHorizontal(lb.Left,
-				barStr,
-				tmp,
-			)
-			continue
-		}
-
-		barStr = fmt.Sprintf("%s\n%s", barStr, tmp)
-	}
-
-	borderColor := lb.Color(uint8(iff(p.selected, 57, 15)))
-
-	title := lb.Border(lb.BorderType{
-		Left:        "│",
-		Right:       "│",
-		Bottom:      "─",
-		BottomRight: "┤",
-		BottomLeft:  "├",
-		ColorFg:     borderColor,
-	}, lb.ExpandHorizontal(
-		p.width, lb.Center,
-		fmt.Sprintf("%s(%d)", p.title, p.value),
-	),
-		true,
-		p.noRightBorder,
-		false,
-		p.noLeftBorder)
-
-	bar := lb.Border(lb.NormalBorder(borderColor),
-		lb.SetColor(lb.Color(57),
-			lb.ExpandHorizontal(p.width, lb.Left,
-				lb.ExpandVertical(p.height, lb.Left,
-					barStr,
-				),
-			),
-		),
-		true,
-		p.noRightBorder,
-		false,
-		p.noLeftBorder)
-
-	return lb.JoinVertical(lb.Center,
-		title,
-		bar,
 	)
+
+	for i := range end {
+		sb.WriteString(getLineAt(i))
+
+		if i == endIdx {
+			break
+		}
+
+		sb.WriteByte('\n')
+	}
+
+	return lb.Border(lb.NormalBorder(
+		lb.WithFgColor(uint8(iff(p.selected, 57, 15))),
+		lb.WithTextTop(fmt.Sprintf("%s(%d)", p.title, p.value), lb.Center),
+	), lb.SetColor(lb.Color(57),
+		sb.String()),
+		false,
+		p.noRightBorder,
+		false,
+		p.noLeftBorder)
 }
 
 func iff[T int | bool | string | uint8](b bool, f, s T) T {
