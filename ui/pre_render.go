@@ -2,26 +2,21 @@ package ui
 
 import (
 	lb "github.com/crolbar/lipbalm"
-	"strings"
+	lbl "github.com/crolbar/lipbalm/layout"
 )
+
+var l lbl.Layout = lbl.DefaultLayout()
 
 func (u *Ui) PreRender() {
 	var (
 		wheelBar = u.preRenderWheelBar()
-	)
 
-	var (
 		rangeBar      = u.preRenderRangeBar()
 		autoCenterBar = u.preRenderAutoCenterBar()
-		sliderBars    = lb.MarginLeft(10,
-			lb.JoinVertical(lb.Left,
-				rangeBar,
-				autoCenterBar,
-			),
-		)
-	)
+		bars          = lb.JoinVertical(lb.Left,
+			rangeBar,
+			autoCenterBar)
 
-	var (
 		buttons     = u.preRenderButtons()
 		clutchBar   = u.preRenderClutchBar()
 		breakBar    = u.preRenderBreakBar()
@@ -32,25 +27,28 @@ func (u *Ui) PreRender() {
 			throttleBar,
 		)
 
-		buttonsPedals = lb.ExpandVertical(
-			u.height-(strings.Count(wheelBar, "\n")+1)-4,
-			lb.Bottom,
-			lb.JoinVertical(lb.Left,
-				buttons,
-				pedals,
-			),
-		)
+		vs = l.Vercital().
+			Constrains(
+				lbl.NewConstrain(lbl.Length, uint16(lb.GetHeight(wheelBar))),
+				lbl.NewConstrain(lbl.Length, uint16(lb.GetHeight(bars))),
+				lbl.NewConstrain(lbl.Percent, 60),
+			).Split(u.fb.Size())
+
+		hs = l.Horizontal().
+			Constrains(
+				lbl.NewConstrain(lbl.Length, uint16(lb.GetWidth(pedals))),
+				lbl.NewConstrain(lbl.Percent, 60),
+			).Split(vs[2])
 	)
 
-	u.preRenders[Screen] = lb.MarginVertical(2, lb.MarginHorizontal(5,
-		lb.JoinHorizontal(lb.Top,
-			lb.JoinVertical(lb.Left,
-				wheelBar,
-				buttonsPedals,
-			),
-			sliderBars,
-		),
-	))
+	u.fb.Clear()
+
+	u.fb.RenderString(wheelBar, vs[0], lb.Left, lb.Top)
+	u.fb.RenderString(buttons, hs[1], lb.Left, lb.Bottom)
+	u.fb.RenderString(pedals, hs[0], lb.Left, lb.Bottom)
+	u.fb.RenderString(bars, vs[1], lb.Right, lb.Center)
+
+	u.preRenders[Screen] = u.fb.View()
 }
 
 func (u Ui) havePreRender(elem UiElement) bool {

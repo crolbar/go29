@@ -4,7 +4,7 @@ go 1.23.4
 
 require (
 	github.com/charmbracelet/bubbletea v1.3.3
-	github.com/crolbar/lipbalm v0.0.0-20250221194743-abe8a200579b
+	github.com/crolbar/lipbalm v0.0.0-20250225214002-52e19c72d556
 )
 
 require (

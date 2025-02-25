@@ -105,10 +105,14 @@ func (u *Ui) renderButtons() string {
 			)
 		}
 
-		buttons = lipbalm.JoinVertical(lipbalm.Left,
-			buttons,
-			line,
-		)
+		if buttons == "" {
+			buttons = line
+		} else {
+			buttons = lipbalm.JoinVertical(lipbalm.Left,
+				buttons,
+				line,
+			)
+		}
 	}
 
 	return buttons

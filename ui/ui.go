@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"github.com/crolbar/lipbalm/framebuffer"
 	"go29/ui/button"
 	pb "go29/ui/progbar"
 )
@@ -47,6 +48,8 @@ type Ui struct {
 	preRenders map[UiElement]string
 	prevValues map[UiElement]int
 	reqRender  map[UiElement]bool
+
+	fb framebuffer.FrameBuffer
 
 	height int
 	width  int
@@ -100,6 +103,8 @@ func NewUi(wRange int) Ui {
 
 		selectedBar: Range,
 
+		fb: framebuffer.NewFrameBuffer(0, 0),
+
 		height: 0,
 		width:  0,
 	}
@@ -108,6 +113,7 @@ func NewUi(wRange int) Ui {
 func (u *Ui) UpdateDimensions(width, height int) {
 	u.width = width
 	u.height = height
+	u.fb.Resize(width, height)
 }
 
 func (u Ui) Render() string {
