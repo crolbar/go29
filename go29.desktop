@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Version=0.1
+Name=go29
+Exec=go29
+Terminal=true
+Categories=ConsoleOnly;
