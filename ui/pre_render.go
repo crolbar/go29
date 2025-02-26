@@ -120,7 +120,8 @@ func (u *Ui) preRenderAutoCenterBar() string {
 	val := u.AutoCenterBar.GetValue()
 
 	// add selected
-	if u.prevValues[AutoCenterBar] == val &&
+	if !u.reqRender[AutoCenterBar] &&
+		u.prevValues[AutoCenterBar] == val &&
 		u.havePreRender(AutoCenterBar) {
 		return u.preRenders[AutoCenterBar]
 	}
@@ -129,6 +130,7 @@ func (u *Ui) preRenderAutoCenterBar() string {
 
 	u.preRenders[AutoCenterBar] = autoCenterBar
 	u.prevValues[AutoCenterBar] = val
+	u.reqRender[AutoCenterBar] = false
 
 	return autoCenterBar
 }
@@ -137,7 +139,8 @@ func (u *Ui) preRenderRangeBar() string {
 	val := u.RangeBar.GetValue()
 
 	// add selected
-	if u.prevValues[RangeBar] == val &&
+	if !u.reqRender[RangeBar] &&
+		u.prevValues[RangeBar] == val &&
 		u.havePreRender(RangeBar) {
 		return u.preRenders[RangeBar]
 	}
@@ -146,6 +149,7 @@ func (u *Ui) preRenderRangeBar() string {
 
 	u.preRenders[RangeBar] = rangeBar
 	u.prevValues[RangeBar] = val
+	u.reqRender[RangeBar] = false
 
 	return rangeBar
 }

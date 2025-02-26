@@ -5,14 +5,14 @@
     system = "x86_64-linux";
     pkgs = import inputs.nixpkgs {inherit system;};
   in {
-    devShells.x86_64-linux.default = pkgs.mkShell {
+    devShells.${system}.default = pkgs.mkShell {
       packages = with pkgs; [
         go
         gopls
       ];
       buildInputs = with pkgs; [systemd];
     };
-    packages.x86_64-linux.default = pkgs.buildGoModule rec {
+    packages.${system}.default = pkgs.buildGoModule rec {
       pname = "go29";
       version = "0.1";
       src = ./.;

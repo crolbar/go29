@@ -100,6 +100,9 @@ func (u *Ui) SelectNextBar() {
 		u.AutoCenterBar.DeSelect()
 		u.RangeBar.Select()
 	}
+
+	u.reqRender[RangeBar] = true
+	u.reqRender[AutoCenterBar] = true
 }
 
 func (u *Ui) SelectPrevBar() {
@@ -113,4 +116,7 @@ func (u *Ui) SelectPrevBar() {
 		u.AutoCenterBar.DeSelect()
 		u.RangeBar.Select()
 	}
+
+	u.reqRender[RangeBar] = true
+	u.reqRender[AutoCenterBar] = true
 }
