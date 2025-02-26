@@ -29,6 +29,6 @@ func (m *model) handleInputEvents(events device.InputEvents) {
 			continue
 		}
 
-		m.ui.HandleInputEvent(evt)
+		m.ui.HandleInputEvent(evt, &m.dev)
 	}
 }

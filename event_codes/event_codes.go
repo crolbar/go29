@@ -51,9 +51,13 @@ const (
 
 // D-pad (code 16-17)
 const (
-	DPAD_UP      = -1
-	DPAD_DOWN    = 1
-	DPAD_LEFT    = -1
-	DPAD_RIGHT   = 1
+	// code 17
+	DPAD_UP   = -1
+	DPAD_DOWN = 1
+
+	// code 16
+	DPAD_LEFT  = -1
+	DPAD_RIGHT = 1
+
 	DPAD_RELEASE = 0
 )
