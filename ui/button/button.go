@@ -23,20 +23,13 @@ func (b *Button) Release() {
 }
 
 func (b Button) View() string {
-	return lb.Border(
-		lb.NormalBorder(),
-		lb.SetColor(
-			lb.ColorBg(iff(b.pressed, uint8(57), 0)),
-			lb.Margin(1,
-				b.title,
+	if b.pressed {
+		return lb.BorderN(
+			lb.SetColor(lb.ColorBg(57),
+				lb.Margin(1, b.title),
 			),
-		),
-	)
-}
-
-func iff[T string | uint8](b bool, f, s T) T {
-	if b {
-		return f
+		)
 	}
-	return s
+
+	return lb.BorderN(lb.Margin(1, b.title))
 }
