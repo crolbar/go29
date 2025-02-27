@@ -27,6 +27,15 @@ type Device struct {
 	dev_name string
 }
 
+func (d *Device) T() {
+	fmt.Println(d.dev_name)
+	fmt.Println(d.dev_path)
+
+	d.TestEffect()
+	// d.SetRange(540)
+}
+
+
 func NewDevice() (*Device, error) {
 	u := udev.NewUdev()
 
