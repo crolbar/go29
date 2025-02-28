@@ -26,12 +26,6 @@ type FF_Envelope struct {
 	fade_level    uint16
 }
 
-type FF_Constant_Effect struct {
-	p        uint16 // PADDING !! TODO
-	level    int16
-	envelope FF_Envelope
-}
-
 type FF_Ramp_Effect struct {
 	start_level int16
 	end_level   int16
@@ -67,6 +61,11 @@ type FF_Rumble_Effect struct {
 	weak_magnitude   uint16
 }
 
+type FF_Constant_Effect struct {
+	level    int16
+	envelope FF_Envelope
+}
+
 type FF_Effect struct {
 	etype     uint16
 	id        int16
@@ -75,7 +74,9 @@ type FF_Effect struct {
 	trigger FF_Trigger
 	replay  FF_Replay
 
-	u [34]byte
+	_pad [2]byte // 2 padding
+
+	u [32]byte // 32 becasue of FF_Periodic_Effect
 }
 
 const (
@@ -110,11 +111,6 @@ func (d *Device) TestEffect() {
 	}
 	defer syscall.Close(fd)
 
-	left(fd)
-	right(fd)
-	time.Sleep(50 * time.Millisecond)
-	right(fd)
-	left(fd)
 	right(fd)
 	left(fd)
 }
@@ -134,11 +130,6 @@ func binPrint(ef FF_Effect) {
 
 	fmt.Println(len(effectBytes.Bytes()))
 	fmt.Println(effectBytes.Bytes())
-
-	// 82 0 255 255 0 192 0 0 0 0 255 255 0 0 0 0
-	// 255 127 0 0 255 127 0 0 255 127 0 0 0 0 0 0
-	// 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-
 }
 
 var effect FF_Effect
