@@ -6,6 +6,7 @@ import (
 	"go29/udev"
 	"strconv"
 	"strings"
+	"syscall"
 )
 
 const (
@@ -25,18 +26,44 @@ type Device struct {
 	dev      *udev.Device
 	dev_path string
 	dev_name string
+
+	fd int
+
+	effect *FF_Effect
 }
-
-func (d *Device) T() {
-	fmt.Println(d.dev_name)
-	fmt.Println(d.dev_path)
-
-	d.TestEffect()
-	// d.SetRange(540)
-}
-
 
 func NewDevice() (*Device, error) {
+	dev, err := getDev()
+	if err != nil {
+		return nil, err
+	}
+
+	path := fmt.Sprintf("/sys%s/device/device", dev.Properties()["DEVPATH"])
+	devname := dev.Properties()["DEVNAME"]
+
+	fd, err := syscall.Open(devname, syscall.O_WRONLY, 0644)
+	if err != nil {
+		return nil, err
+	}
+
+	m := Device{
+		dev:      dev,
+		dev_path: path,
+		dev_name: devname,
+
+		fd: fd,
+
+		effect: &FF_Effect{id: -1},
+	}
+
+	return &m, nil
+}
+
+func (d *Device) CloseFD() {
+	syscall.Close(d.fd)
+}
+
+func getDev() (*udev.Device, error) {
 	u := udev.NewUdev()
 
 	enumerator := u.NewEnumerate()
@@ -68,9 +95,5 @@ func NewDevice() (*Device, error) {
 		return nil, errors.New("No device found with vendorID: 0x046d and productID: 0xc24f")
 	}
 
-	path := fmt.Sprintf("/sys%s/device/device", dev.Properties()["DEVPATH"])
-	devname := dev.Properties()["DEVNAME"]
-	m := Device{dev: dev, dev_path: path, dev_name: devname}
-
-	return &m, nil
+	return dev, nil
 }

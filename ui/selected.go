@@ -14,6 +14,10 @@ func (u *Ui) HandleSelectedBarLeft(dev *device.Device) {
 		p := u.getSelecedBarPrevMark()
 		dev.SetAutocenter(p)
 		u.AutoCenterBar.SetValue(p)
+	case ConstEffect:
+		v := max(u.ConstEffectBar.GetValue() - 1, -10)
+		dev.SetConstantEffect(float32(v) / 10.0)
+		u.ConstEffectBar.SetValue(v)
 	}
 }
 
@@ -28,6 +32,11 @@ func (u *Ui) HandleSelectedBarRight(dev *device.Device) {
 		p := u.getSelecedBarNextMark()
 		dev.SetAutocenter(p)
 		u.AutoCenterBar.SetValue(p)
+
+	case ConstEffect:
+		v := min(u.ConstEffectBar.GetValue() + 1, 10)
+		dev.SetConstantEffect(float32(v) / 10.0)
+		u.ConstEffectBar.SetValue(v)
 	}
 }
 
@@ -92,31 +101,51 @@ func (u *Ui) getSelecedBarPrevMark() int {
 func (u *Ui) SelectNextBar() {
 	switch u.selectedBar {
 	case Range:
-		u.selectedBar = AutoCenter
 		u.RangeBar.DeSelect()
+		u.selectedBar = AutoCenter
 		u.AutoCenterBar.Select()
-	case AutoCenter:
-		u.selectedBar = Range
-		u.AutoCenterBar.DeSelect()
-		u.RangeBar.Select()
-	}
 
-	u.reqRender[RangeBar] = true
-	u.reqRender[AutoCenterBar] = true
+		u.reqRender[RangeBar] = true
+		u.reqRender[AutoCenterBar] = true
+	case AutoCenter:
+		u.AutoCenterBar.DeSelect()
+		u.selectedBar = ConstEffect
+		u.ConstEffectBar.Select()
+
+		u.reqRender[AutoCenterBar] = true
+		u.reqRender[ConstEffectBar] = true
+	case ConstEffect:
+		u.ConstEffectBar.DeSelect()
+		u.selectedBar = Range
+		u.RangeBar.Select()
+
+		u.reqRender[RangeBar] = true
+		u.reqRender[ConstEffectBar] = true
+	}
 }
 
 func (u *Ui) SelectPrevBar() {
 	switch u.selectedBar {
 	case Range:
-		u.selectedBar = AutoCenter
 		u.RangeBar.DeSelect()
-		u.AutoCenterBar.Select()
-	case AutoCenter:
-		u.selectedBar = Range
-		u.AutoCenterBar.DeSelect()
-		u.RangeBar.Select()
-	}
+		u.selectedBar = ConstEffect
+		u.ConstEffectBar.Select()
 
-	u.reqRender[RangeBar] = true
-	u.reqRender[AutoCenterBar] = true
+		u.reqRender[RangeBar] = true
+		u.reqRender[ConstEffectBar] = true
+	case AutoCenter:
+		u.AutoCenterBar.DeSelect()
+		u.selectedBar = Range
+		u.RangeBar.Select()
+
+		u.reqRender[AutoCenterBar] = true
+		u.reqRender[RangeBar] = true
+	case ConstEffect:
+		u.ConstEffectBar.DeSelect()
+		u.selectedBar = AutoCenter
+		u.AutoCenterBar.Select()
+
+		u.reqRender[AutoCenterBar] = true
+		u.reqRender[ConstEffectBar] = true
+	}
 }

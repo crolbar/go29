@@ -11,6 +11,7 @@ type SelectedBar int
 const (
 	Range SelectedBar = iota
 	AutoCenter
+	ConstEffect
 )
 
 type UiElement int
@@ -25,6 +26,7 @@ const (
 	ClutchBar
 	RangeBar
 	AutoCenterBar
+	ConstEffectBar
 	Buttons // includes Dpad
 	Dpad    // part of Buttons
 )
@@ -37,8 +39,9 @@ type Ui struct {
 	BreakBar    pb.ProgBar
 	ClutchBar   pb.ProgBar
 
-	RangeBar      pb.ProgBar
-	AutoCenterBar pb.ProgBar
+	RangeBar       pb.ProgBar
+	AutoCenterBar  pb.ProgBar
+	ConstEffectBar pb.ProgBar
 
 	selectedBar SelectedBar
 
@@ -92,6 +95,10 @@ func NewUi(wRange int) Ui {
 		),
 		AutoCenterBar: pb.NewProgBar("autocenter", 3, 40,
 			pb.WithMaxValue(100),
+		),
+		ConstEffectBar: pb.NewProgBar("const_effect", 3, 40,
+			pb.WithMinValue(-10),
+			pb.WithMaxValue(10),
 		),
 
 		Buttons: buttonsMap,

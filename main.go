@@ -19,22 +19,20 @@ func main() {
 		fmt.Println("Error while creating device: ", err)
 		return
 	}
-	d.T()
+	defer d.CloseFD()
 
+	p := tea.NewProgram(
+		model{
+			ui:  ui.NewUi(d.GetRange()),
+			dev: *d,
+		}, tea.WithAltScreen())
 
-	// p := tea.NewProgram(
-	// 	model{
-	// 		ui:  ui.NewUi(d.GetRange()),
-	// 		dev: *d,
-	// 	}, tea.WithAltScreen())
+	d.SpawnEventListenerThread(p)
 
-	// d.SpawnEventListenerThread(p)
-
-	// if _, err := p.Run(); err != nil {
-	// 	fmt.Println("Exited with Error: ", err)
-	// 	return
-	// }
-	// select{}
+	if _, err := p.Run(); err != nil {
+		fmt.Println("Exited with Error: ", err)
+		return
+	}
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

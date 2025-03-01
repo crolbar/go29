@@ -11,11 +11,13 @@ func (u *Ui) PreRender() {
 	var (
 		wheelBar = u.preRenderWheelBar()
 
-		rangeBar      = u.preRenderRangeBar()
-		autoCenterBar = u.preRenderAutoCenterBar()
-		bars          = lb.JoinVertical(lb.Left,
+		rangeBar       = u.preRenderRangeBar()
+		autoCenterBar  = u.preRenderAutoCenterBar()
+		constEffectBar = u.preRenderConstEffectBar()
+		bars           = lb.JoinVertical(lb.Left,
 			rangeBar,
-			autoCenterBar)
+			autoCenterBar,
+			constEffectBar)
 
 		buttons     = u.preRenderButtons()
 		clutchBar   = u.preRenderClutchBar()
@@ -119,7 +121,6 @@ func (u *Ui) preRenderClutchBar() string {
 func (u *Ui) preRenderAutoCenterBar() string {
 	val := u.AutoCenterBar.GetValue()
 
-	// add selected
 	if !u.reqRender[AutoCenterBar] &&
 		u.prevValues[AutoCenterBar] == val &&
 		u.havePreRender(AutoCenterBar) {
@@ -135,10 +136,27 @@ func (u *Ui) preRenderAutoCenterBar() string {
 	return autoCenterBar
 }
 
+func (u *Ui) preRenderConstEffectBar() string {
+	val := u.ConstEffectBar.GetValue()
+
+	if !u.reqRender[ConstEffectBar] &&
+		u.prevValues[ConstEffectBar] == val &&
+		u.havePreRender(ConstEffectBar) {
+		return u.preRenders[ConstEffectBar]
+	}
+
+	constEffectBar := u.ConstEffectBar.View()
+
+	u.preRenders[ConstEffectBar] = constEffectBar
+	u.prevValues[ConstEffectBar] = val
+	u.reqRender[ConstEffectBar] = false
+
+	return constEffectBar
+}
+
 func (u *Ui) preRenderRangeBar() string {
 	val := u.RangeBar.GetValue()
 
-	// add selected
 	if !u.reqRender[RangeBar] &&
 		u.prevValues[RangeBar] == val &&
 		u.havePreRender(RangeBar) {
