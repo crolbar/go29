@@ -4,13 +4,17 @@ import (
 	"fmt"
 	"go29/device"
 	"go29/ui"
+	"go29/virtDev"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 type model struct {
 	dev device.Device
+	vd  virtDev.VirtDev
 	ui  ui.Ui
+
+	pressed bool
 }
 
 func main() {
@@ -25,6 +29,8 @@ func main() {
 		model{
 			ui:  ui.NewUi(d.GetRange()),
 			dev: *d,
+			vd: *virtDev.NewVirtDev(),
+			pressed: false,
 		}, tea.WithAltScreen())
 
 	d.SpawnEventListenerThread(p)
