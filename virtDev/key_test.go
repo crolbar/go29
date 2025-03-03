@@ -1,8 +1,12 @@
 package virtDev
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestM(t *testing.T) {
 	// KeyNew()
-	WheelNew()
+	err := WheelNew()
+	fmt.Println("error: ", err)
 }

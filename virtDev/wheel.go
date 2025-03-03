@@ -5,6 +5,7 @@ package virtDev
 */
 import "C"
 import (
+	"fmt"
 	"log"
 	"syscall"
 	"time"
@@ -16,68 +17,74 @@ func WheelNew() error {
 	if err != nil {
 		return err
 	}
-	defer syscall.Close(fd)
 
 	{
-		// Enable event types
-		ioctl(fd, C.UI_SET_EVBIT, C.EV_KEY)       // Buttons
-		ioctl(fd, C.UI_SET_EVBIT, C.EV_ABS)       // Axes
-		ioctl(fd, C.UI_SET_EVBIT, C.EV_FF)        // Force feedback
-		ioctl(fd, C.UI_SET_EVBIT, C.EV_FF_STATUS) // Force feedback status
-
-		// Configure buttons - G29 has many buttons
-		// Main buttons
-		ioctl(fd, C.UI_SET_KEYBIT, C.BTN_SOUTH)  // X
-		ioctl(fd, C.UI_SET_KEYBIT, C.BTN_EAST)   // Circle
-		ioctl(fd, C.UI_SET_KEYBIT, C.BTN_NORTH)  // Triangle
-		ioctl(fd, C.UI_SET_KEYBIT, C.BTN_WEST)   // Square
-		ioctl(fd, C.UI_SET_KEYBIT, C.BTN_START)  // Options
-		ioctl(fd, C.UI_SET_KEYBIT, C.BTN_SELECT) // Share
-		ioctl(fd, C.UI_SET_KEYBIT, C.BTN_MODE)   // PS button
-
-		// Wheel buttons
-		ioctl(fd, C.UI_SET_KEYBIT, C.BTN_GEAR_DOWN) // Left paddle
-		ioctl(fd, C.UI_SET_KEYBIT, C.BTN_GEAR_UP)   // Right paddle
-		ioctl(fd, C.UI_SET_KEYBIT, C.BTN_TL)        // L2
-		ioctl(fd, C.UI_SET_KEYBIT, C.BTN_TR)        // R2
-
-		// Additional G29 buttons
-		for i := C.BTN_0; i <= C.BTN_9; i++ {
-			ioctl(fd, C.UI_SET_KEYBIT, uintptr(i))
+		// EV
+		{
+			ioctl(fd, C.UI_SET_EVBIT, C.EV_SYN)
+			ioctl(fd, C.UI_SET_EVBIT, C.EV_KEY) // Buttons
+			ioctl(fd, C.UI_SET_EVBIT, C.EV_ABS) // Axes
+			ioctl(fd, C.UI_SET_EVBIT, C.EV_FF)  // Force feedback
+			ioctl(fd, C.UI_SET_EVBIT, C.EV_MSC)
 		}
 
-		// Wheel base buttons
-		ioctl(fd, C.UI_SET_KEYBIT, C.BTN_THUMBL)
-		ioctl(fd, C.UI_SET_KEYBIT, C.BTN_THUMBR)
+		// KEY
+		{
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_TRIGGER)
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_THUMB2)
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_THUMB)
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_TOP)
 
-		// Configure axes
-		// Main controls
-		ioctl(fd, C.UI_SET_ABSBIT, C.ABS_X)  // Steering wheel
-		ioctl(fd, C.UI_SET_ABSBIT, C.ABS_Y)  // Throttle
-		ioctl(fd, C.UI_SET_ABSBIT, C.ABS_Z)  // Brake
-		ioctl(fd, C.UI_SET_ABSBIT, C.ABS_RZ) // Clutch
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_BASE)
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_BASE5)
 
-		// D-pad
-		ioctl(fd, C.UI_SET_ABSBIT, C.ABS_HAT0X) // D-pad X
-		ioctl(fd, C.UI_SET_ABSBIT, C.ABS_HAT0Y) // D-pad Y
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_BASE2)
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_BASE6)
 
-		// Force feedback effects
-		ioctl(fd, C.UI_SET_FFBIT, C.FF_CONSTANT)
-		ioctl(fd, C.UI_SET_FFBIT, C.FF_RAMP)
-		ioctl(fd, C.UI_SET_FFBIT, C.FF_PERIODIC)
-		ioctl(fd, C.UI_SET_FFBIT, C.FF_SPRING)
-		ioctl(fd, C.UI_SET_FFBIT, C.FF_FRICTION)
-		ioctl(fd, C.UI_SET_FFBIT, C.FF_DAMPER)
-		ioctl(fd, C.UI_SET_FFBIT, C.FF_RUMBLE)
-		ioctl(fd, C.UI_SET_FFBIT, C.FF_INERTIA)
-		ioctl(fd, C.UI_SET_FFBIT, C.FF_CUSTOM)
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_TRIGGER_HAPPY8)
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_TRIGGER_HAPPY6)
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_TRIGGER_HAPPY7)
 
-		// Periodic effect types
-		ioctl(fd, C.UI_SET_FFBIT, C.FF_SQUARE)
-		ioctl(fd, C.UI_SET_FFBIT, C.FF_TRIANGLE)
-		ioctl(fd, C.UI_SET_FFBIT, C.FF_SINE)
-		ioctl(fd, C.UI_SET_FFBIT, C.FF_SAW_UP)
-		ioctl(fd, C.UI_SET_FFBIT, C.FF_SAW_DOWN)
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_BASE3)
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_BASE4)
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_TRIGGER_HAPPY9)
+
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_TRIGGER_HAPPY5)
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_TRIGGER_HAPPY4)
+
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_TOP2)
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_PINKIE)
+
+			ioctl(fd, C.UI_SET_KEYBIT, 0x12C)
+			ioctl(fd, C.UI_SET_KEYBIT, 0x12D)
+			ioctl(fd, C.UI_SET_KEYBIT, 0x12E)
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_DEAD)
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_TRIGGER_HAPPY1)
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_TRIGGER_HAPPY2)
+			ioctl(fd, C.UI_SET_KEYBIT, C.BTN_TRIGGER_HAPPY3)
+		}
+
+		// MSC
+		{
+			ioctl(fd, C.UI_SET_MSCBIT, C.MSC_SCAN)
+		}
+		// ABS
+		{
+			ioctl(fd, C.UI_SET_ABSBIT, C.ABS_X)  // Steering wheel
+			ioctl(fd, C.UI_SET_ABSBIT, C.ABS_Y)  // Clutch
+			ioctl(fd, C.UI_SET_ABSBIT, C.ABS_Z)  // Throttle
+			ioctl(fd, C.UI_SET_ABSBIT, C.ABS_RZ) // Break
+
+			ioctl(fd, C.UI_SET_ABSBIT, C.ABS_HAT0X) // D-pad X
+			ioctl(fd, C.UI_SET_ABSBIT, C.ABS_HAT0Y) // D-pad Y
+		}
+
+		// FF
+		{
+			ioctl(fd, C.UI_SET_FFBIT, C.FF_CONSTANT)
+			ioctl(fd, C.UI_SET_FFBIT, C.FF_GAIN)
+			ioctl(fd, C.UI_SET_FFBIT, C.FF_AUTOCENTER)
+		}
 	}
 
 	var uidev uinputUserDev
@@ -136,9 +143,6 @@ func WheelNew() error {
 
 	time.Sleep(time.Second)
 
-	log.Println("Virtual G29 device created successfully.")
-	log.Println("Starting event handling loop...")
-
 	emit(fd, C.EV_ABS, C.ABS_X, 0)     // Centered steering
 	emit(fd, C.EV_ABS, C.ABS_Y, 0)     // Released throttle
 	emit(fd, C.EV_ABS, C.ABS_Z, 0)     // Released brake
@@ -147,29 +151,34 @@ func WheelNew() error {
 	emit(fd, C.EV_ABS, C.ABS_HAT0Y, 0) // Centered D-pad Y
 	syncEvents(fd)
 
+	log.Println("Virtual G29 device created successfully.")
+	log.Println("Starting event handling loop...")
+
+	fdr, err := syscall.Open("/dev/input/event13", syscall.O_RDONLY, 0644)
+	if err != nil {
+		return err
+	}
+
 	{
 		go func() {
 			for {
 				var stat syscall.Stat_t
-				err := syscall.Fstat(fd, &stat)
+				err := syscall.Fstat(fdr, &stat)
 				if err != nil {
 					log.Printf("Fstat error: %v", err)
 				} else {
-					log.Printf("File descriptor %d status: dev=%d, ino=%d", fd, stat.Dev, stat.Ino)
+					log.Printf("File descriptor %d status: dev=%d, ino=%d", fdr, stat.Dev, stat.Ino)
 				}
 				time.Sleep(5 * time.Second)
 			}
 		}()
 	}
 
-	var buffer [64]byte
+	var buffer []byte = make([]byte, 24*64)
 	for {
-
-		// Check for force feedback effects sent from the system
-		n, err := syscall.Read(fd, buffer[:])
+		n, err := syscall.Read(fdr, buffer)
 		if err != nil {
 			if err == syscall.EAGAIN {
-				// No data available, not an error in non-blocking mode
 				time.Sleep(10 * time.Millisecond)
 				continue
 			}
@@ -179,28 +188,12 @@ func WheelNew() error {
 		}
 
 		if n > 0 {
-			// Process the force feedback effect data
-			// This would depend on how you want to handle FF effects
 			log.Printf("Received %d bytes of force feedback data", n)
-
-			// Here you would typically:
-			// 1. Parse the effect data
-			// 2. Acknowledge receipt of the effect
-			// 3. Simulate the effect on your virtual hardware or pass it to real hardware
 		}
 
-		// You can add here code to simulate steering wheel movement, button presses, etc.
-		// For example, to simulate oscillating steering:
-		/*
-			oscillation := int32(32767.0 * math.Sin(float64(time.Now().UnixNano())/1e9))
-			writeEvent(fd, C.EV_ABS, C.ABS_X, oscillation)
-			syncEvents(fd)
-		*/
-
+		fmt.Println("sleeping")
 		time.Sleep(10 * time.Millisecond)
 	}
-
-	// time.Sleep(time.Second)
 
 	// ioctl(fd, C.UI_DEV_DESTROY, 0)
 	// syscall.Close(fd)
