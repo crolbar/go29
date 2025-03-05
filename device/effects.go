@@ -53,7 +53,7 @@ const (
 func (d *Device) SetConstantEffect(strength float32) {
 	// erase effect
 	if d.effect.id != -1 {
-		if errno := eraseEffect(d.fd, &d.effect.id); errno != 0 {
+		if errno := eraseEffect(d.Fd, &d.effect.id); errno != 0 {
 			fmt.Println(errno)
 		}
 	}
@@ -75,14 +75,14 @@ func (d *Device) SetConstantEffect(strength float32) {
 	}
 
 	// write effect
-	errno := writeEffect(d.fd, d.effect)
+	errno := writeEffect(d.Fd, d.effect)
 	if errno != 0 {
 		fmt.Println(errno)
 	}
 
 	// start effect
 	now := time.Now()
-	err := writeInputEvent(d.fd, InputEvent{
+	err := writeInputEvent(d.Fd, InputEvent{
 		Sec:   now.Unix(),
 		Usec:  int64(now.Nanosecond() / 1000),
 		Type:  EV_FF,

@@ -29,6 +29,16 @@ func (m *model) handleInputEvents(events device.InputEvents) {
 			continue
 		}
 
+		if evt.Code == ec.ABS_RZ {
+			if 255 - evt.Value > 40 && !m.pressed {
+				m.vd.PressA()
+				m.pressed = true
+			} else {
+				m.vd.ReleaseA()
+				m.pressed = false
+			}
+			// return
+		}
 		m.ui.HandleInputEvent(evt, &m.dev)
 	}
 }
