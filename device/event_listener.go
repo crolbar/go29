@@ -2,8 +2,8 @@ package device
 
 import (
 	"fmt"
+	tea "github.com/charmbracelet/bubbletea"
 	"syscall"
-	// tea "github.com/charmbracelet/bubbletea"
 )
 
 type InputEvents struct {
@@ -11,16 +11,16 @@ type InputEvents struct {
 	N    int
 }
 
-func (d *Device) SpawnEventListenerThread(ch chan InputEvents) {
+func (d *Device) SpawnEventListenerThread(p *tea.Program) {
 	fd, err := syscall.Open(d.dev_name, syscall.O_RDONLY, 0644)
 	if err != nil {
 		fmt.Println("Error opening dev event", err)
 	}
 
-	go eventListener(fd, ch)
+	go eventListener(fd, p)
 }
 
-func eventListener(fd int, ch chan InputEvents) {
+func eventListener(fd int, p *tea.Program) {
 	epfd, err := syscall.EpollCreate1(0)
 	if err != nil {
 		fmt.Println("Error creating epoll:", err)
@@ -51,9 +51,7 @@ func eventListener(fd int, ch chan InputEvents) {
 				continue
 			}
 
-			// fmt.Println(data)
-			ch <- InputEvents{Data: data, N: n}
-			// p.Send(InputEvents{Data: data, N: n})
+			p.Send(InputEvents{Data: data, N: n})
 		}
 	}
 }

@@ -11,7 +11,7 @@ import (
 
 type model struct {
 	dev device.Device
-	vd  virtDev.VirtDev
+	vk  virtDev.VirtKeyboard
 	ui  ui.Ui
 
 	pressed bool
@@ -25,11 +25,13 @@ func main() {
 	}
 	defer d.CloseFD()
 
+	vk, err := virtDev.NewVirtKeyboard()
+
 	p := tea.NewProgram(
 		model{
-			ui:  ui.NewUi(d.GetRange()),
-			dev: *d,
-			vd: *virtDev.NewVirtDev(),
+			ui:      ui.NewUi(d.GetRange()),
+			dev:     *d,
+			vk:      *vk,
 			pressed: false,
 		}, tea.WithAltScreen())
 

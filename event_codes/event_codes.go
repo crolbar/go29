@@ -11,7 +11,9 @@ const (
 	ABS_RZ    = 0x05 // break
 	ABS_HAT0X = 0x10 // d-pad up/down
 	ABS_HAT0Y = 0x11 // d-pad left/right
-	EV_KEY    = 0x01 // send on buttons (unneeded)
+
+	EV_KEY    = 0x01 // send on buttons
+	EV_MSC    = 0x04 // send on buttons (unneeded)
 	EV_SYN    = 0x00 // sync
 )
 
