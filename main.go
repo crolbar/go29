@@ -26,6 +26,10 @@ func main() {
 	defer d.CloseFD()
 
 	vk, err := virtDev.NewVirtKeyboard()
+	if err != nil {
+		fmt.Println("Error while creating virtDev: ", err)
+		return
+	}
 
 	p := tea.NewProgram(
 		model{

@@ -14,7 +14,8 @@ import (
 )
 
 type VirtKeyboard struct {
-	fd int
+	fd     int
+	remaps []Remap
 }
 
 func NewVirtKeyboard() (*VirtKeyboard, error) {
@@ -53,18 +54,39 @@ func NewVirtKeyboard() (*VirtKeyboard, error) {
 
 	time.Sleep(time.Second / 2)
 
+	remaps, err := ParseRemapConfig()
+	if err != nil {
+		return nil, err
+	}
 	return &VirtKeyboard{
-		fd: fd,
+		fd:     fd,
+		remaps: remaps,
 	}, nil
 }
 
 func (k *VirtKeyboard) HandleInputEvent(evt device.InputEvent) {
-	if evt.Code == C.BTN_TRIGGER && evt.Value == 1 {
-		k.PressKey(KEY_A)
-	}
-	
-	if evt.Code == C.BTN_TRIGGER && evt.Value == 0 {
-		k.ReleaseKey(KEY_A)
+	for _, r := range k.remaps {
+		if evt.Code == uint16(r.from) {
+			if r.modified && evt.Value == 1{
+				k.PressKey(r.to[0])
+				k.ClickKeys(r.to[1:])
+				k.ReleaseKey(r.to[0])
+				continue
+			}
+
+			if r.click && evt.Value == 1 {
+				k.ClickKeys(r.to)
+				continue
+			}
+
+
+			switch evt.Value {
+			case 0:
+				k.ReleaseKeys(r.to)
+			case 1:
+				k.PressKeys(r.to)
+			}
+		}
 	}
 }
 
@@ -73,19 +95,37 @@ func (k *VirtKeyboard) DestroyDev() {
 	syscall.Close(k.fd)
 }
 
-func (k *VirtKeyboard) PressKey(key int) {
-	emit(k.fd, C.EV_KEY, key, 1)
+func (k *VirtKeyboard) PressKeys(key []KBKey) {
+	for _, _k := range key {
+		k.PressKey(_k)
+	}
+}
+
+func (k *VirtKeyboard) PressKey(key KBKey) {
+	emit(k.fd, C.EV_KEY, int(key), 1)
 	syncEvents(k.fd)
 }
 
-func (k *VirtKeyboard) ReleaseKey(key int) {
-	emit(k.fd, C.EV_KEY, key, 0)
+func (k *VirtKeyboard) ReleaseKeys(key []KBKey) {
+	for _, _k := range key {
+		k.ReleaseKey(_k)
+	}
+}
+
+func (k *VirtKeyboard) ReleaseKey(key KBKey) {
+	emit(k.fd, C.EV_KEY, int(key), 0)
 	syncEvents(k.fd)
 }
 
-func (k *VirtKeyboard) ClickKey(key int) {
-	emit(k.fd, C.EV_KEY, key, 1)
+func (k *VirtKeyboard) ClickKeys(key []KBKey) {
+	for _, _k := range key {
+		k.ClickKey(_k)
+	}
+}
+
+func (k *VirtKeyboard) ClickKey(key KBKey) {
+	emit(k.fd, C.EV_KEY, int(key), 1)
 	syncEvents(k.fd)
-	emit(k.fd, C.EV_KEY, key, 0)
+	emit(k.fd, C.EV_KEY, int(key), 0)
 	syncEvents(k.fd)
 }
