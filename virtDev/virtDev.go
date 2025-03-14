@@ -64,6 +64,17 @@ func NewVirtKeyboard() (*VirtKeyboard, error) {
 	}, nil
 }
 
+func (vk *VirtKeyboard) ReloadConfig() error {
+	remaps, err := ParseRemapConfig()
+	if err != nil {
+		return err
+	}
+
+	vk.remaps = remaps
+
+	return nil
+}
+
 func (vk *VirtKeyboard) HandleInputEvent(evt device.InputEvent) {
 	for _, r := range vk.remaps {
 		if evt.Code != uint16(r.from) {

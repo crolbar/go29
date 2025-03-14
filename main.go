@@ -63,6 +63,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.ui.SelectNextBar()
 		case "shift+tab", "k", "up":
 			m.ui.SelectPrevBar()
+		case "r":
+			err := m.vk.ReloadConfig()
+			if err != nil {
+				panic(err)
+			}
 		}
 	case tea.WindowSizeMsg:
 		m.ui.UpdateDimensions(msg.Width, msg.Height)
