@@ -15,7 +15,7 @@ import (
 
 type VirtKeyboard struct {
 	fd     int
-	remaps []Remap
+	remaps []remap
 }
 
 func NewVirtKeyboard() (*VirtKeyboard, error) {
@@ -64,28 +64,39 @@ func NewVirtKeyboard() (*VirtKeyboard, error) {
 	}, nil
 }
 
-func (k *VirtKeyboard) HandleInputEvent(evt device.InputEvent) {
-	for _, r := range k.remaps {
-		if evt.Code == uint16(r.from) {
-			if r.modified && evt.Value == 1{
-				k.PressKey(r.to[0])
-				k.ClickKeys(r.to[1:])
-				k.ReleaseKey(r.to[0])
+func (vk *VirtKeyboard) HandleInputEvent(evt device.InputEvent) {
+	for _, r := range vk.remaps {
+		if evt.Code != uint16(r.from) {
+			continue
+		}
+
+		postActions := make([]func(), 0)
+
+		for _, k := range r.to {
+			// click on press
+			if k.click && evt.Value == 1 {
+				vk.ClickKey(k.key)
 				continue
 			}
-
-			if r.click && evt.Value == 1 {
-				k.ClickKeys(r.to)
-				continue
-			}
-
 
 			switch evt.Value {
 			case 0:
-				k.ReleaseKeys(r.to)
+				vk.ReleaseKey(k.key)
 			case 1:
-				k.PressKeys(r.to)
+				vk.PressKey(k.key)
 			}
+
+			// release after
+			if k.modifier && evt.Value == 1 {
+				postActions = append(postActions,
+					func() {
+						vk.ReleaseKey(k.key)
+					})
+			}
+		}
+
+		for _, a := range postActions {
+			a()
 		}
 	}
 }
@@ -95,35 +106,15 @@ func (k *VirtKeyboard) DestroyDev() {
 	syscall.Close(k.fd)
 }
 
-func (k *VirtKeyboard) PressKeys(key []KBKey) {
-	for _, _k := range key {
-		k.PressKey(_k)
-	}
-}
-
-func (k *VirtKeyboard) PressKey(key KBKey) {
+func (k *VirtKeyboard) PressKey(key key) {
 	emit(k.fd, C.EV_KEY, int(key), 1)
 	syncEvents(k.fd)
 }
-
-func (k *VirtKeyboard) ReleaseKeys(key []KBKey) {
-	for _, _k := range key {
-		k.ReleaseKey(_k)
-	}
-}
-
-func (k *VirtKeyboard) ReleaseKey(key KBKey) {
+func (k *VirtKeyboard) ReleaseKey(key key) {
 	emit(k.fd, C.EV_KEY, int(key), 0)
 	syncEvents(k.fd)
 }
-
-func (k *VirtKeyboard) ClickKeys(key []KBKey) {
-	for _, _k := range key {
-		k.ClickKey(_k)
-	}
-}
-
-func (k *VirtKeyboard) ClickKey(key KBKey) {
+func (k *VirtKeyboard) ClickKey(key key) {
 	emit(k.fd, C.EV_KEY, int(key), 1)
 	syncEvents(k.fd)
 	emit(k.fd, C.EV_KEY, int(key), 0)

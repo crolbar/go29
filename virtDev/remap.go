@@ -11,18 +11,21 @@ import (
 	"strings"
 )
 
-type Remap struct {
-	from WheelKey
-	to   []KBKey
+type wheelKey int
+type key uint8
 
-	// press & release every button in order
-	click bool
-
-	// press & hold the first button and click the others
-	modified bool
+type kbKey struct {
+	key      key
+	click    bool
+	modifier bool
 }
 
-var fromMap = map[string]WheelKey{
+type remap struct {
+	from wheelKey
+	to   []kbKey
+}
+
+var fromMap = map[string]wheelKey{
 	"BTN_X":               BTN_X,
 	"BTN_CIRCLE":          BTN_CIRCLE,
 	"BTN_SQUARE":          BTN_SQUARE,
@@ -56,7 +59,7 @@ var fromMap = map[string]WheelKey{
 	"ABS_DPADY":           ABS_DPADY,
 }
 
-var toMap = map[string]KBKey{
+var toMap = map[string]key{
 	"KEY_ESC":              KEY_ESC,
 	"KEY_1":                KEY_1,
 	"KEY_2":                KEY_2,
@@ -171,11 +174,7 @@ var toMap = map[string]KBKey{
 	"KEY_MUTE":             KEY_MUTE,
 	"KEY_VOLUMEDOWN":       KEY_VOLUMEDOWN,
 	"KEY_VOLUMEUP":         KEY_VOLUMEUP,
-	"KEY_POWER":            KEY_POWER,
-	"KEY_KPEQUAL":          KEY_KPEQUAL,
-	"KEY_KPPLUSMINUS":      KEY_KPPLUSMINUS,
 	"KEY_PAUSE":            KEY_PAUSE,
-	"KEY_SCALE":            KEY_SCALE,
 	"KEY_KPCOMMA":          KEY_KPCOMMA,
 	"KEY_HANGEUL":          KEY_HANGEUL,
 	"KEY_HANGUEL":          KEY_HANGUEL,
@@ -184,63 +183,6 @@ var toMap = map[string]KBKey{
 	"KEY_LEFTMETA":         KEY_LEFTMETA,
 	"KEY_RIGHTMETA":        KEY_RIGHTMETA,
 	"KEY_COMPOSE":          KEY_COMPOSE,
-	"KEY_STOP":             KEY_STOP,
-	"KEY_AGAIN":            KEY_AGAIN,
-	"KEY_PROPS":            KEY_PROPS,
-	"KEY_UNDO":             KEY_UNDO,
-	"KEY_FRONT":            KEY_FRONT,
-	"KEY_COPY":             KEY_COPY,
-	"KEY_OPEN":             KEY_OPEN,
-	"KEY_PASTE":            KEY_PASTE,
-	"KEY_FIND":             KEY_FIND,
-	"KEY_CUT":              KEY_CUT,
-	"KEY_HELP":             KEY_HELP,
-	"KEY_MENU":             KEY_MENU,
-	"KEY_CALC":             KEY_CALC,
-	"KEY_SETUP":            KEY_SETUP,
-	"KEY_SLEEP":            KEY_SLEEP,
-	"KEY_WAKEUP":           KEY_WAKEUP,
-	"KEY_FILE":             KEY_FILE,
-	"KEY_SENDFILE":         KEY_SENDFILE,
-	"KEY_DELETEFILE":       KEY_DELETEFILE,
-	"KEY_XFER":             KEY_XFER,
-	"KEY_PROG1":            KEY_PROG1,
-	"KEY_PROG2":            KEY_PROG2,
-	"KEY_WWW":              KEY_WWW,
-	"KEY_MSDOS":            KEY_MSDOS,
-	"KEY_COFFEE":           KEY_COFFEE,
-	"KEY_SCREENLOCK":       KEY_SCREENLOCK,
-	"KEY_ROTATE_DISPLAY":   KEY_ROTATE_DISPLAY,
-	"KEY_DIRECTION":        KEY_DIRECTION,
-	"KEY_CYCLEWINDOWS":     KEY_CYCLEWINDOWS,
-	"KEY_MAIL":             KEY_MAIL,
-	"KEY_BOOKMARKS":        KEY_BOOKMARKS,
-	"KEY_COMPUTER":         KEY_COMPUTER,
-	"KEY_BACK":             KEY_BACK,
-	"KEY_FORWARD":          KEY_FORWARD,
-	"KEY_CLOSECD":          KEY_CLOSECD,
-	"KEY_EJECTCD":          KEY_EJECTCD,
-	"KEY_EJECTCLOSECD":     KEY_EJECTCLOSECD,
-	"KEY_NEXTSONG":         KEY_NEXTSONG,
-	"KEY_PLAYPAUSE":        KEY_PLAYPAUSE,
-	"KEY_PREVIOUSSONG":     KEY_PREVIOUSSONG,
-	"KEY_STOPCD":           KEY_STOPCD,
-	"KEY_RECORD":           KEY_RECORD,
-	"KEY_REWIND":           KEY_REWIND,
-	"KEY_PHONE":            KEY_PHONE,
-	"KEY_ISO":              KEY_ISO,
-	"KEY_CONFIG":           KEY_CONFIG,
-	"KEY_HOMEPAGE":         KEY_HOMEPAGE,
-	"KEY_REFRESH":          KEY_REFRESH,
-	"KEY_EXIT":             KEY_EXIT,
-	"KEY_MOVE":             KEY_MOVE,
-	"KEY_EDIT":             KEY_EDIT,
-	"KEY_SCROLLUP":         KEY_SCROLLUP,
-	"KEY_SCROLLDOWN":       KEY_SCROLLDOWN,
-	"KEY_KPLEFTPAREN":      KEY_KPLEFTPAREN,
-	"KEY_KPRIGHTPAREN":     KEY_KPRIGHTPAREN,
-	"KEY_NEW":              KEY_NEW,
-	"KEY_REDO":             KEY_REDO,
 	"KEY_F13":              KEY_F13,
 	"KEY_F14":              KEY_F14,
 	"KEY_F15":              KEY_F15,
@@ -307,40 +249,60 @@ func removeComments(s string) string {
 	return out
 }
 
-func ParseRemapConfig() ([]Remap, error) {
+func ParseRemapConfig() ([]remap, error) {
 	confConts, err := getConfigConts()
 	if err != nil {
-		return []Remap{}, nil
+		return []remap{}, err
 	}
 
 	confConts = strings.ReplaceAll(confConts, " ", "")
 	confConts = removeComments(confConts)
 
-	remaps := make([]Remap, 0)
+	remaps := make([]remap, 0)
 
-	for _, remap := range strings.Split(confConts, ";") {
-		if len(remap) == 0 {
+	for _, remapStr := range strings.Split(confConts, ";") {
+		if len(remapStr) == 0 {
 			continue
 		}
 
 		var (
-			fromTo = strings.Split(remap, "=")
+			fromTo = strings.Split(remapStr, "=")
 
 			from  = fromMap[fromTo[0]]
-			toStr = fromTo[len(fromTo)-1]
+			toStr = fromTo[1]
 
-			to = make([]KBKey, 0)
+			to = make([]kbKey, 0)
 		)
 
 		for _, key := range strings.Split(toStr, ",") {
-			to = append(to, toMap[key])
+			var (
+				click    = true
+				modifier = false
+			)
+
+			// press
+			if strings.HasPrefix(key, "(") && strings.HasSuffix(key, ")") {
+				key = key[1 : len(key)-1]
+				click = false
+			}
+
+			// mod
+			if strings.HasPrefix(key, "{") && strings.HasSuffix(key, "}") {
+				key = key[1 : len(key)-1]
+				click = false
+				modifier = true
+			}
+
+			to = append(to, kbKey{
+				key:      toMap[key],
+				click:    click,
+				modifier: modifier,
+			})
 		}
 
-		remaps = append(remaps, Remap{
-			from:     from,
-			to:       to,
-			modified: len(fromTo) > 3,
-			click:    len(fromTo) > 2,
+		remaps = append(remaps, remap{
+			from: from,
+			to:   to,
 		})
 	}
 
