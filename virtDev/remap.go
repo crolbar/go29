@@ -264,37 +264,52 @@ func ParseRemapConfig() ([]remap, error) {
 		if len(remapStr) == 0 {
 			continue
 		}
+		fromTo := strings.Split(remapStr, "=")
+		if len(fromTo) <= 1 {
+			return []remap{}, errors.New("config syntax error, near: " + remapStr)
+		}
+
+		from, exists := fromMap[fromTo[0]]
+		if !exists {
+			return []remap{},
+				errors.New("Config Parsing Error: \"from\" key: '" + fromTo[0] + "' not found. " +
+					"see /go29/virtDev/types.go for all key types")
+		}
 
 		var (
-			fromTo = strings.Split(remapStr, "=")
-
-			from  = fromMap[fromTo[0]]
 			toStr = fromTo[1]
 
 			to = make([]kbKey, 0)
 		)
 
-		for _, key := range strings.Split(toStr, ",") {
+		for _, keyStr := range strings.Split(toStr, ",") {
 			var (
 				click    = true
 				modifier = false
 			)
 
 			// press
-			if strings.HasPrefix(key, "(") && strings.HasSuffix(key, ")") {
-				key = key[1 : len(key)-1]
+			if strings.HasPrefix(keyStr, "(") && strings.HasSuffix(keyStr, ")") {
+				keyStr = keyStr[1 : len(keyStr)-1]
 				click = false
 			}
 
 			// mod
-			if strings.HasPrefix(key, "{") && strings.HasSuffix(key, "}") {
-				key = key[1 : len(key)-1]
+			if strings.HasPrefix(keyStr, "{") && strings.HasSuffix(keyStr, "}") {
+				keyStr = keyStr[1 : len(keyStr)-1]
 				click = false
 				modifier = true
 			}
 
+			key, exists := toMap[keyStr]
+			if !exists {
+				return []remap{},
+					errors.New("Config Parsing Error: \"to\" key: '" + keyStr + "' not found. " +
+						"see /go29/virtDev/types.go for all key types")
+			}
+
 			to = append(to, kbKey{
-				key:      toMap[key],
+				key:      key,
 				click:    click,
 				modifier: modifier,
 			})
