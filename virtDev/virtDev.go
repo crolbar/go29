@@ -15,7 +15,7 @@ import (
 
 type VirtKeyboard struct {
 	fd     int
-	remaps []remap
+	remaps map[wheelKey][]kbKey
 }
 
 func NewVirtKeyboard() (*VirtKeyboard, error) {
@@ -76,39 +76,61 @@ func (vk *VirtKeyboard) ReloadConfig() error {
 }
 
 func (vk *VirtKeyboard) HandleInputEvent(evt device.InputEvent) {
-	for _, r := range vk.remaps {
-		if evt.Code != uint16(r.from) {
+	to, exists := vk.remaps[wheelKey(evt.Code)]
+	if !exists {
+		return
+	}
+
+	postActions := make([]func(), 0)
+
+	outOfDeadZone := evt.Value >= 1
+
+	switch evt.Code {
+	case ABS_WHEEL: // max 65535, med 32767
+		var (
+			deadzone = int32(1200)
+			left  = evt.Value < 32767-deadzone
+			right = evt.Value > 32767+deadzone
+		)
+
+		if left {
+			to = to[:len(to)/2]
+		}
+		if right {
+			to = to[len(to)/2:]
+		}
+
+		outOfDeadZone = left || right
+	case ABS_BREAK, ABS_THROTTLE, ABS_CLUTCH: // start 255, end 0
+		outOfDeadZone = 255-evt.Value >= 70
+	}
+
+	for _, k := range to {
+		// click
+		if k.click && outOfDeadZone {
+			vk.ClickKey(k.key)
 			continue
 		}
 
-		postActions := make([]func(), 0)
-
-		for _, k := range r.to {
-			// click on press
-			if k.click && evt.Value == 1 {
-				vk.ClickKey(k.key)
-				continue
-			}
-
-			switch evt.Value {
-			case 0:
-				vk.ReleaseKey(k.key)
-			case 1:
-				vk.PressKey(k.key)
-			}
-
-			// release after
-			if k.modifier && evt.Value == 1 {
-				postActions = append(postActions,
-					func() {
-						vk.ReleaseKey(k.key)
-					})
-			}
+		// press/release
+		switch {
+		case !outOfDeadZone:
+			vk.ReleaseKey(k.key)
+		case outOfDeadZone:
+			vk.PressKey(k.key)
 		}
 
-		for _, a := range postActions {
-			a()
+		// release after all
+		if k.modifier && outOfDeadZone {
+			postActions = append(postActions,
+				func() {
+					vk.ReleaseKey(k.key)
+				})
 		}
+	}
+
+	for _, a := range postActions {
+		a()
 	}
 }
 

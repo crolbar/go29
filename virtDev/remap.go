@@ -20,11 +20,6 @@ type kbKey struct {
 	modifier bool
 }
 
-type remap struct {
-	from wheelKey
-	to   []kbKey
-}
-
 var fromMap = map[string]wheelKey{
 	"BTN_X":               BTN_X,
 	"BTN_CIRCLE":          BTN_CIRCLE,
@@ -249,16 +244,16 @@ func removeComments(s string) string {
 	return out
 }
 
-func ParseRemapConfig() ([]remap, error) {
+func ParseRemapConfig() (map[wheelKey][]kbKey, error) {
 	confConts, err := getConfigConts()
 	if err != nil {
-		return []remap{}, err
+		return nil, err
 	}
 
 	confConts = strings.ReplaceAll(confConts, " ", "")
 	confConts = removeComments(confConts)
 
-	remaps := make([]remap, 0)
+	remaps := make(map[wheelKey][]kbKey, 0)
 
 	for _, remapStr := range strings.Split(confConts, ";") {
 		if len(remapStr) == 0 {
@@ -266,12 +261,12 @@ func ParseRemapConfig() ([]remap, error) {
 		}
 		fromTo := strings.Split(remapStr, "=")
 		if len(fromTo) <= 1 {
-			return []remap{}, errors.New("config syntax error, near: " + remapStr)
+			return nil, errors.New("config syntax error, near: " + remapStr)
 		}
 
 		from, exists := fromMap[fromTo[0]]
 		if !exists {
-			return []remap{},
+			return nil,
 				errors.New("Config Parsing Error: \"from\" key: '" + fromTo[0] + "' not found. " +
 					"see /go29/virtDev/types.go for all key types")
 		}
@@ -303,7 +298,7 @@ func ParseRemapConfig() ([]remap, error) {
 
 			key, exists := toMap[keyStr]
 			if !exists {
-				return []remap{},
+				return nil,
 					errors.New("Config Parsing Error: \"to\" key: '" + keyStr + "' not found. " +
 						"see /go29/virtDev/types.go for all key types")
 			}
@@ -315,10 +310,7 @@ func ParseRemapConfig() ([]remap, error) {
 			})
 		}
 
-		remaps = append(remaps, remap{
-			from: from,
-			to:   to,
-		})
+		remaps[from] = to
 	}
 
 	return remaps, nil
