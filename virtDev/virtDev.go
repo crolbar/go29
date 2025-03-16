@@ -8,6 +8,7 @@ import "C"
 
 import (
 	"go29/device"
+	ec "go29/event_codes"
 	"syscall"
 	"time"
 	"unsafe"
@@ -86,11 +87,11 @@ func (vk *VirtKeyboard) HandleInputEvent(evt device.InputEvent) {
 	outOfDeadZone := evt.Value >= 1
 
 	switch evt.Code {
-	case ABS_WHEEL: // max 65535, med 32767
+	case ec.ABS_WHEEL: // max 65535, med 32767
 		var (
 			deadzone = int32(1200)
-			left  = evt.Value < 32767-deadzone
-			right = evt.Value > 32767+deadzone
+			left     = evt.Value < 32767-deadzone
+			right    = evt.Value > 32767+deadzone
 		)
 
 		if left {
@@ -101,7 +102,7 @@ func (vk *VirtKeyboard) HandleInputEvent(evt device.InputEvent) {
 		}
 
 		outOfDeadZone = left || right
-	case ABS_BREAK, ABS_THROTTLE, ABS_CLUTCH: // start 255, end 0
+	case ec.ABS_BREAK, ec.ABS_THROTTLE, ec.ABS_CLUTCH: // start 255, end 0
 		outOfDeadZone = 255-evt.Value >= 70
 	}
 
