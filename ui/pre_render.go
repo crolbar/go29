@@ -11,6 +11,8 @@ func (u *Ui) PreRender() {
 	var (
 		wheelBar = u.preRenderWheelBar()
 
+		virtDevButton = u.preRenderVirtDevButton()
+
 		rangeBar       = u.preRenderRangeBar()
 		autoCenterBar  = u.preRenderAutoCenterBar()
 		constEffectBar = u.preRenderConstEffectBar()
@@ -41,11 +43,18 @@ func (u *Ui) PreRender() {
 				lbl.NewConstrain(lbl.Length, uint16(lb.GetWidth(pedals))),
 				lbl.NewConstrain(lbl.Percent, 60),
 			).Split(vs[2])
+
+		ths = l.Horizontal().
+			Constrains(
+				lbl.NewConstrain(lbl.Length, uint16(lb.GetWidth(wheelBar))),
+				lbl.NewConstrain(lbl.Percent, 100),
+			).Split(vs[0])
 	)
 
 	u.fb.Clear()
 
-	u.fb.RenderString(wheelBar, vs[0], lb.Left, lb.Top)
+	u.fb.RenderString(wheelBar, ths[0], lb.Left, lb.Top)
+	u.fb.RenderString(virtDevButton, ths[1], lb.Right, lb.Top)
 	u.fb.RenderString(buttons, hs[1], lb.Left, lb.Bottom)
 	u.fb.RenderString(pedals, hs[0], lb.Left, lb.Bottom)
 	u.fb.RenderString(bars, vs[1], lb.Right, lb.Center)
@@ -55,6 +64,24 @@ func (u *Ui) PreRender() {
 
 func (u Ui) havePreRender(elem UiElement) bool {
 	return u.preRenders[elem] != ""
+}
+
+func (u *Ui) preRenderVirtDevButton() string {
+	val := 0
+	if !u.VirtDevButton.GetState() {
+		val = 1
+	}
+
+	if u.prevValues[virtDevButton] == val &&
+		u.havePreRender(virtDevButton) {
+		return u.preRenders[virtDevButton]
+	}
+
+	btn := u.VirtDevButton.View()
+	u.prevValues[virtDevButton] = val
+	u.preRenders[virtDevButton] = btn
+
+	return btn
 }
 
 func (u *Ui) preRenderButtons() string {

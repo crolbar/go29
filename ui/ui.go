@@ -29,6 +29,7 @@ const (
 	ConstEffectBar
 	Buttons // includes Dpad
 	Dpad    // part of Buttons
+	virtDevButton
 )
 
 type Ui struct {
@@ -47,6 +48,8 @@ type Ui struct {
 
 	Buttons map[int]*button.Button
 	Dpad    map[int]map[int]*button.Button
+
+	VirtDevButton button.Button
 
 	preRenders map[UiElement]string
 	prevValues map[UiElement]int
@@ -103,6 +106,11 @@ func NewUi(wRange int) Ui {
 
 		Buttons: buttonsMap,
 		Dpad:    dpadMap,
+
+		VirtDevButton: *button.NewButton(
+			"  'space'/'v'   \n to start/stop  \nvirtual keyboard",
+			button.WithMargin(0),
+		),
 
 		preRenders: make(map[UiElement]string),
 		prevValues: make(map[UiElement]int),

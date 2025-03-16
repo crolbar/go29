@@ -27,7 +27,7 @@ type Device struct {
 	dev_path string
 	dev_name string
 
-	fd int
+	Fd int
 
 	effect *FF_Effect
 }
@@ -51,7 +51,7 @@ func NewDevice() (*Device, error) {
 		dev_path: path,
 		dev_name: devname,
 
-		fd: fd,
+		Fd: fd,
 
 		effect: &FF_Effect{id: -1},
 	}
@@ -60,7 +60,7 @@ func NewDevice() (*Device, error) {
 }
 
 func (d *Device) CloseFD() {
-	syscall.Close(d.fd)
+	syscall.Close(d.Fd)
 }
 
 func getDev() (*udev.Device, error) {

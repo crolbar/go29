@@ -24,11 +24,14 @@ func (m *model) handleInputEvents(events device.InputEvents) {
 			fmt.Println("binary.Read Error:", err)
 		}
 
-		// skip SYN & unused KEY events
-		if evt.Type == ec.EV_SYN || evt.Type == ec.EV_KEY {
+		// skip SYN
+		if evt.Type == ec.EV_SYN { //|| evt.Type == ec.EV_MSC { TODO!!!!!!!!!!!!
 			continue
 		}
 
+		if m.vk != nil {
+			m.vk.HandleInputEvent(evt)
+		}
 		m.ui.HandleInputEvent(evt, &m.dev)
 	}
 }

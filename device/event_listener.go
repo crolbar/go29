@@ -2,9 +2,8 @@ package device
 
 import (
 	"fmt"
-	"syscall"
-
 	tea "github.com/charmbracelet/bubbletea"
+	"syscall"
 )
 
 type InputEvents struct {
