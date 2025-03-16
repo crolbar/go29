@@ -29,7 +29,9 @@ func (m *model) handleInputEvents(events device.InputEvents) {
 			continue
 		}
 
-		m.vk.HandleInputEvent(evt)
+		if m.vk != nil {
+			m.vk.HandleInputEvent(evt)
+		}
 		m.ui.HandleInputEvent(evt, &m.dev)
 	}
 }
