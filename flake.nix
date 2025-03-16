@@ -17,7 +17,7 @@
       version = "0.1";
       src = ./.;
       buildInputs = with pkgs; [systemd.dev];
-      vendorHash = "sha256-r43FjbKH3g/ZJp43KvvcbPyphZQP/HDmZ11XMS227Bs=";
+      vendorHash = "sha256-fMkjinGD7TkXufWH4NEjhorkbwfP7yf+/7f++VPm9Bo=";
       installPhase = ''
         runHook preInstall
 
