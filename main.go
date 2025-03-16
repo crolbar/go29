@@ -59,7 +59,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "shift+tab", "k", "up":
 			m.ui.SelectPrevBar()
 		case "r":
-			err = m.vk.ReloadConfig()
+			if m.vk != nil {
+				err = m.vk.ReloadConfig()
+			}
 		case "v", " ":
 			err = m.ToggleVK()
 		}
