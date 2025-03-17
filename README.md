@@ -16,7 +16,7 @@
 ## Virtual Keyboard
 
 - config file path: `~/go29` or `~/.config/go29`
-- example can be found in the repo in `exapleConfig`
+- example can be found in the repo in `exampleConfig`
 
 ## Bulding
 
