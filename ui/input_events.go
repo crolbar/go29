@@ -5,10 +5,7 @@ import (
 	ec "go29/event_codes"
 )
 
-func (u *Ui) HandleInputEvent(
-	evt device.InputEvent,
-	dev *device.Device,
-) {
+func (u *Ui) HandleInputEvent(evt device.InputEvent) {
 	var (
 		_type = evt.Type
 		code  = int(evt.Code)
@@ -42,37 +39,17 @@ func (u *Ui) HandleInputEvent(
 	case ec.ABS_CLUTCH:
 		u.ClutchBar.SetValue(255 - value)
 	case ec.ABS_DPADX, ec.ABS_DPADY:
-		u.handleDpadInput(value, code, dev)
+		u.handleDpadInput(value, code)
 	}
 }
 
-func (u *Ui) handleDpadInput(
-	value, code int,
-	dev *device.Device,
-) {
+func (u *Ui) handleDpadInput(value, code int) {
 	u.reqRender[Dpad] = true
 
 	if value == 0 {
 		u.Dpad[code][-1].Release()
 		u.Dpad[code][1].Release()
 		return
-	}
-
-	switch code {
-	case ec.ABS_DPADY:
-		switch value {
-		case ec.DPAD_UP:
-			u.SelectPrevBar()
-		case ec.DPAD_DOWN:
-			u.SelectNextBar()
-		}
-	case ec.ABS_DPADX:
-		switch value {
-		case ec.DPAD_RIGHT:
-			u.HandleSelectedBarRight(dev)
-		case ec.DPAD_LEFT:
-			u.HandleSelectedBarLeft(dev)
-		}
 	}
 
 	u.Dpad[code][value].Toggle()

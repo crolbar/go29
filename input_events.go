@@ -32,6 +32,6 @@ func (m *model) handleInputEvents(events device.InputEvents) {
 		if m.vk != nil {
 			m.vk.HandleInputEvent(evt)
 		}
-		m.ui.HandleInputEvent(evt, &m.dev)
+		m.ui.HandleInputEvent(evt)
 	}
 }
