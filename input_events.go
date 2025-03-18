@@ -28,7 +28,7 @@ func (m *model) handleInputEvents(events device.InputEvents) {
 		}
 
 		// skip SYN
-		if evt.Type == ec.EV_SYN { //|| evt.Type == ec.EV_MSC { TODO!!!!!!!!!!!!
+		if evt.Type == ec.EV_SYN {
 			continue
 		}
 
