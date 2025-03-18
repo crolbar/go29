@@ -130,6 +130,14 @@ func (p *ProgBar) GetValue() int {
 	return p.value
 }
 
+func (p *ProgBar) GetMaxValue() int {
+	return p.max_value
+}
+
+func (p *ProgBar) GetMinValue() int {
+	return p.min_value
+}
+
 func (p ProgBar) View() string {
 	var (
 		sb  strings.Builder

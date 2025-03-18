@@ -16,10 +16,6 @@ func (u *Ui) PreRender() {
 		rangeBar       = u.preRenderRangeBar()
 		autoCenterBar  = u.preRenderAutoCenterBar()
 		constEffectBar = u.preRenderConstEffectBar()
-		bars           = lb.JoinVertical(lb.Left,
-			rangeBar,
-			autoCenterBar,
-			constEffectBar)
 
 		buttons     = u.preRenderButtons()
 		clutchBar   = u.preRenderClutchBar()
@@ -31,12 +27,32 @@ func (u *Ui) PreRender() {
 			throttleBar,
 		)
 
+		rangeBarHeight = uint16(lb.GetHeight(rangeBar))
+		rangeBarWidth  = uint16(lb.GetWidth(rangeBar))
+
 		vs = l.Vercital().
 			Constrains(
 				lbl.NewConstrain(lbl.Length, uint16(lb.GetHeight(wheelBar))),
-				lbl.NewConstrain(lbl.Length, uint16(lb.GetHeight(bars))),
+				lbl.NewConstrain(lbl.Length, rangeBarHeight*3),
 				lbl.NewConstrain(lbl.Percent, 60),
 			).Split(u.fb.Size())
+
+		barss = l.Vercital().
+			Constrains(
+				lbl.NewConstrain(lbl.Length, rangeBarHeight),
+				lbl.NewConstrain(lbl.Length, rangeBarHeight),
+				lbl.NewConstrain(lbl.Length, rangeBarHeight),
+			).Split(vs[1])
+
+		rangeBarRect = l.Horizontal().
+				Constrains(lbl.NewConstrain(lbl.Percent, 100), lbl.NewConstrain(lbl.Length, rangeBarWidth)).
+				Split(barss[0])[1]
+		autoCenterBarRect = l.Horizontal().
+					Constrains(lbl.NewConstrain(lbl.Percent, 100), lbl.NewConstrain(lbl.Length, rangeBarWidth)).
+					Split(barss[1])[1]
+		constEffectBarRect = l.Horizontal().
+					Constrains(lbl.NewConstrain(lbl.Percent, 100), lbl.NewConstrain(lbl.Length, rangeBarWidth)).
+					Split(barss[2])[1]
 
 		hs = l.Horizontal().
 			Constrains(
@@ -57,7 +73,14 @@ func (u *Ui) PreRender() {
 	u.fb.RenderString(virtDevButton, ths[1], lb.Right, lb.Top)
 	u.fb.RenderString(buttons, hs[1], lb.Left, lb.Bottom)
 	u.fb.RenderString(pedals, hs[0], lb.Left, lb.Bottom)
-	u.fb.RenderString(bars, vs[1], lb.Right, lb.Center)
+
+	u.fb.RenderString(rangeBar, rangeBarRect, lb.Right, lb.Center)
+	u.fb.RenderString(autoCenterBar, autoCenterBarRect, lb.Right, lb.Center)
+	u.fb.RenderString(constEffectBar, constEffectBarRect, lb.Right, lb.Center)
+
+	u.Rects[RangeBar] = rangeBarRect
+	u.Rects[AutoCenterBar] = autoCenterBarRect
+	u.Rects[ConstEffectBar] = constEffectBarRect
 
 	u.preRenders[Screen] = u.fb.View()
 }

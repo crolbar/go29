@@ -2,6 +2,7 @@ package ui
 
 import (
 	"github.com/crolbar/lipbalm/framebuffer"
+	lbl "github.com/crolbar/lipbalm/layout"
 	"go29/ui/button"
 	pb "go29/ui/progbar"
 )
@@ -56,6 +57,8 @@ type Ui struct {
 	reqRender  map[UiElement]bool
 
 	fb framebuffer.FrameBuffer
+
+	Rects map[UiElement]lbl.Rect
 
 	height int
 	width  int
@@ -119,6 +122,9 @@ func NewUi(wRange int) Ui {
 		selectedBar: Range,
 
 		fb: framebuffer.NewFrameBuffer(0, 0),
+
+
+		Rects: make(map[UiElement]lbl.Rect),
 
 		height: 0,
 		width:  0,

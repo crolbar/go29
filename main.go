@@ -31,7 +31,7 @@ func main() {
 			dev:     *d,
 			vk:      nil,
 			pressed: false,
-		}, tea.WithAltScreen())
+		}, tea.WithAltScreen(), tea.WithMouseCellMotion())
 
 	d.SpawnEventListenerThread(p)
 
@@ -65,6 +65,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "v", " ":
 			err = m.ToggleVK()
 		}
+	case tea.MouseMsg:
+		m.handleMouseEvent(tea.MouseEvent(msg))
 	case tea.WindowSizeMsg:
 		m.ui.UpdateDimensions(msg.Width, msg.Height)
 	case device.InputEvents:
